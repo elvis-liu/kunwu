@@ -99,6 +99,35 @@ public class ConstructorInjectTest {
         assertThat(testPOJO.getDeanA(), nullValue());
     }
 
+    @Test
+    public void shouldInjectPOJOWithMultiConstructorSameTypeParamsDifferentOrder() throws Exception {
+        // given
+        TestDeanA deanA = new TestDeanA();
+        deanA.setValue(50);
+        TestDeanB deanB = new TestDeanB();
+        deanB.setValue("test");
+        deanContainer.addDean(deanA);
+        deanContainer.addDean(deanB);
+
+        // when
+        ClassWithMultiConstructorsSameTypeParams testPOJO = deanContainer.create(ClassWithMultiConstructorsSameTypeParams.class, TestDeanB.class, TestDeanA.class);
+
+        // then
+        assertThat(testPOJO.getBy(), is("B,A"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionEvenHaveAssignableDeanOfChildTypes() throws Exception {
+        // given
+        TestDeanC deanC = new TestDeanC();
+        deanC.setAnotherValue("deanC");
+        deanC.setValue(25);
+        deanContainer.addDean(deanC);
+
+        // when
+        deanContainer.create(ClassWithSingleConstructorSingleParam.class, TestDeanA.class);
+    }
+
     private static class ClassWithSingleConstructorSingleParam {
         private TestDeanA dean;
 
@@ -132,11 +161,11 @@ public class ConstructorInjectTest {
     private static class TestDeanA {
         private int value;
 
-        private int getValue() {
+        public int getValue() {
             return value;
         }
 
-        private void setValue(int value) {
+        public void setValue(int value) {
             this.value = value;
         }
     }
@@ -186,6 +215,40 @@ public class ConstructorInjectTest {
 
         private TestDeanA getDeanA() {
             return deanA;
+        }
+    }
+
+    private static class ClassWithMultiConstructorsSameTypeParams {
+        private TestDeanA deanA;
+        private TestDeanB deanB;
+        private String by;
+
+        public ClassWithMultiConstructorsSameTypeParams(TestDeanA deanA, TestDeanB deanB) {
+            this.deanA = deanA;
+            this.deanB = deanB;
+            this.by = "A,B";
+        }
+
+        public ClassWithMultiConstructorsSameTypeParams(TestDeanB deanB, TestDeanA deanA) {
+            this.deanA = deanA;
+            this.deanB = deanB;
+            this.by = "B,A";
+        }
+
+        private String getBy() {
+            return by;
+        }
+    }
+
+    private static class TestDeanC extends TestDeanA {
+        private String anotherValue;
+
+        public String getAnotherValue() {
+            return anotherValue;
+        }
+
+        private void setAnotherValue(String anotherValue) {
+            this.anotherValue = anotherValue;
         }
     }
 }
