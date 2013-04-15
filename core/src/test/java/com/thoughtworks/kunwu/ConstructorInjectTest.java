@@ -26,7 +26,7 @@ public class ConstructorInjectTest {
         deanContainer.addDean(dean);
 
         // when
-        ClassWithSingleConstructorSingleParam testPOJO = deanContainer.create(ClassWithSingleConstructorSingleParam.class, refByClass(TestDeanA.class));
+        ClassWithSingleConstructorSingleParam testPOJO = deanContainer.deanBuilder(ClassWithSingleConstructorSingleParam.class).constructBy(refByClass(TestDeanA.class)).create();
 
         // then
         assertThat(testPOJO.getDean().getValue(), is(100));
@@ -43,7 +43,7 @@ public class ConstructorInjectTest {
         deanContainer.addDean(deanB);
 
         // when
-        ClassWithSingleConstructorMultiParams testPOJO = deanContainer.create(ClassWithSingleConstructorMultiParams.class, refByClass(TestDeanA.class), refByClass(TestDeanB.class));
+        ClassWithSingleConstructorMultiParams testPOJO = deanContainer.deanBuilder(ClassWithSingleConstructorMultiParams.class).constructBy(refByClass(TestDeanA.class), refByClass(TestDeanB.class)).create();
 
         // then
         assertThat(testPOJO.getDeanA().getValue(), is(50));
@@ -61,7 +61,7 @@ public class ConstructorInjectTest {
         deanContainer.addDean(deanB);
 
         // when
-        ClassWithMultiConstructorsSingleParam testPOJO = deanContainer.create(ClassWithMultiConstructorsSingleParam.class, refByClass(TestDeanB.class));
+        ClassWithMultiConstructorsSingleParam testPOJO = deanContainer.deanBuilder(ClassWithMultiConstructorsSingleParam.class).constructBy(refByClass(TestDeanB.class)).create();
 
         // then
         assertThat(testPOJO.getDeanA(), nullValue());
@@ -70,7 +70,7 @@ public class ConstructorInjectTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionIfNoMatchedConstructor() throws Exception {
-        deanContainer.create(ClassWithMultiConstructorsSingleParam.class, refByClass(String.class));
+        deanContainer.deanBuilder(ClassWithMultiConstructorsSingleParam.class).constructBy(refByClass(String.class)).create();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -81,7 +81,7 @@ public class ConstructorInjectTest {
         deanContainer.addDean(deanA);
 
         // when
-        deanContainer.create(ClassWithMultiConstructorsSingleParam.class, refByClass(TestDeanB.class));
+        deanContainer.deanBuilder(ClassWithMultiConstructorsSingleParam.class).constructBy(refByClass(TestDeanB.class)).create();
     }
 
     @Test
@@ -92,7 +92,7 @@ public class ConstructorInjectTest {
         deanContainer.addDean(deanA);
 
         // when
-        ClassWithDefaultConstructor testPOJO = deanContainer.create(ClassWithDefaultConstructor.class);
+        ClassWithDefaultConstructor testPOJO = deanContainer.deanBuilder(ClassWithDefaultConstructor.class).constructBy().create();
 
         // then
         assertThat(testPOJO, notNullValue());
@@ -110,7 +110,7 @@ public class ConstructorInjectTest {
         deanContainer.addDean(deanB);
 
         // when
-        ClassWithMultiConstructorsSameTypeParams testPOJO = deanContainer.create(ClassWithMultiConstructorsSameTypeParams.class, refByClass(TestDeanB.class), refByClass(TestDeanA.class));
+        ClassWithMultiConstructorsSameTypeParams testPOJO = deanContainer.deanBuilder(ClassWithMultiConstructorsSameTypeParams.class).constructBy(refByClass(TestDeanB.class), refByClass(TestDeanA.class)).create();
 
         // then
         assertThat(testPOJO.getBy(), is("B,A"));
@@ -125,13 +125,13 @@ public class ConstructorInjectTest {
         deanContainer.addDean(deanC);
 
         // when
-        deanContainer.create(ClassWithSingleConstructorSingleParam.class, refByClass(TestDeanA.class));
+        deanContainer.deanBuilder(ClassWithSingleConstructorSingleParam.class).constructBy(refByClass(TestDeanA.class)).create();
     }
 
     @Test
     public void shouldInjectPOJOWithOnlyValueRefs() throws Exception {
         // when
-        ClassWithOnlyValueRefs testPOJO = deanContainer.create(ClassWithOnlyValueRefs.class, DeanReference.refByValue(1), DeanReference.refByValue("test"));
+        ClassWithOnlyValueRefs testPOJO = deanContainer.deanBuilder(ClassWithOnlyValueRefs.class).constructBy(DeanReference.refByValue(1), DeanReference.refByValue("test")).create();
 
         // then
         assertThat(testPOJO.getIntValue(), is(1));
@@ -146,8 +146,7 @@ public class ConstructorInjectTest {
         deanContainer.addDean(deanA);
 
         // when
-        ClassWithMixedValueAndDeanConstructor testPOJO = deanContainer.create(ClassWithMixedValueAndDeanConstructor.class, refByValue((short) 12), refByValue(13l),
-                refByValue((byte) 14), refByValue(15.0), refByValue((float) 16.0), refByClass(TestDeanA.class));
+        ClassWithMixedValueAndDeanConstructor testPOJO = deanContainer.deanBuilder(ClassWithMixedValueAndDeanConstructor.class).constructBy(refByValue((short) 12), refByValue(13l), refByValue((byte) 14), refByValue(15.0), refByValue((float) 16.0), refByClass(TestDeanA.class)).create();
 
         // then
         assertThat(testPOJO.getShortValue(), is((short)12));

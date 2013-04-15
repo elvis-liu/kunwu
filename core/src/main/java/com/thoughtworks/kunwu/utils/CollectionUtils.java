@@ -1,4 +1,4 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.utils;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;

@@ -18,7 +18,7 @@ public class DeanContainerBasicTest {
 
     @Test
     public void shouldCreatePOJOWithOnlyDefaultConstructor() throws Exception {
-        Object obj = deanContainer.create(Object.class);
+        Object obj = deanContainer.deanBuilder(Object.class).constructBy().create();
         assertThat(obj, notNullValue());
     }
 
@@ -26,12 +26,12 @@ public class DeanContainerBasicTest {
     public void shouldCreateExistedDeanObjectWhenClassMatches() throws Exception {
         Integer intDean = new Integer(3);
         deanContainer.addDean(intDean);
-        assertThat(deanContainer.create(Integer.class), is(intDean));
+        assertThat(deanContainer.deanBuilder(Integer.class).constructBy().create(), is(intDean));
     }
 
     @Test
     public void shouldAddCreatedObjectAsDean() throws Exception {
-        Object createdObj = deanContainer.create(Object.class);
+        Object createdObj = deanContainer.deanBuilder(Object.class).constructBy().create();
         assertThat(deanContainer.getDean(Object.class), is(createdObj));
     }
 }
