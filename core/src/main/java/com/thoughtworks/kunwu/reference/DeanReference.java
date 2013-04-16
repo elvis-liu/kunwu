@@ -52,27 +52,35 @@ public class DeanReference {
     }
 
     public static DeanReference refByValue(int value) {
-        return new DeanReference(value, Integer.TYPE);
+        return new DeanReference(value, int.class);
     }
 
     public static DeanReference refByValue(short value) {
-        return new DeanReference(value, Short.TYPE);
+        return new DeanReference(value, short.class);
     }
 
     public static DeanReference refByValue(long value) {
-        return new DeanReference(value, Long.TYPE);
+        return new DeanReference(value, long.class);
     }
 
     public static DeanReference refByValue(byte value) {
-        return new DeanReference(value, Byte.TYPE);
+        return new DeanReference(value, byte.class);
     }
 
     public static DeanReference refByValue(float value) {
-        return new DeanReference(value, Float.TYPE);
+        return new DeanReference(value, float.class);
     }
 
     public static DeanReference refByValue(double value) {
-        return new DeanReference(value, Double.TYPE);
+        return new DeanReference(value, double.class);
+    }
+
+    public static DeanReference refByValue(boolean value) {
+        return new DeanReference(value, boolean.class);
+    }
+
+    public static DeanReference refByValue(char value) {
+        return new DeanReference(value, char.class);
     }
 
     public static DeanReference refById(String id) {
