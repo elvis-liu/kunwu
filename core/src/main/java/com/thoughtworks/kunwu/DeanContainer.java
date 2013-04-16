@@ -5,14 +5,17 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 
 public class DeanContainer {
-    private Map<Class<?>, Object> deanTypeMap = Maps.newHashMap();
+    private Map<String, Object> deanIdMap = Maps.newHashMap();
 
-    public void addDean(Object dean) {
-        deanTypeMap.put(dean.getClass(), dean);
+    public void addDean(String id, Object dean) {
+        if (deanIdMap.containsKey(id)) {
+            throw new IllegalArgumentException("Dean of given id already exists: " + id);
+        }
+        deanIdMap.put(id, dean);
     }
 
-    public Object getDean(Class<?> targetClass) {
-        return deanTypeMap.get(targetClass);
+    public Object getDean(String id) {
+        return deanIdMap.get(id);
     }
 
     public <T> DeanBuilder<T> deanBuilder(Class<T> targetClass) {

@@ -18,20 +18,34 @@ public class DeanContainerBasicTest {
 
     @Test
     public void shouldCreatePOJOWithOnlyDefaultConstructor() throws Exception {
-        Object obj = deanContainer.deanBuilder(Object.class).constructBy().create();
+        Object obj = deanContainer.deanBuilder(Object.class).create();
         assertThat(obj, notNullValue());
     }
 
     @Test
-    public void shouldCreateExistedDeanObjectWhenClassMatches() throws Exception {
-        Integer intDean = new Integer(3);
-        deanContainer.addDean(intDean);
-        assertThat(deanContainer.deanBuilder(Integer.class).constructBy().create(), is(intDean));
+    public void shouldBeAbleToGetDeanById() throws Exception {
+        deanContainer.addDean("int1", 3);
+        assertThat(deanContainer.getDean("int1"), is((Object) 3));
+    }
+
+    @Test
+    public void shouldAllowDeanWithSameTypeByIds() throws Exception {
+        deanContainer.addDean("str1", "test1");
+        deanContainer.addDean("str2", "test2");
+
+        assertThat(deanContainer.getDean("str1"), is((Object)"test1"));
+        assertThat(deanContainer.getDean("str2"), is((Object)"test2"));
     }
 
     @Test
     public void shouldAddCreatedObjectAsDean() throws Exception {
-        Object createdObj = deanContainer.deanBuilder(Object.class).constructBy().create();
-        assertThat(deanContainer.getDean(Object.class), is(createdObj));
+        Object createdObj = deanContainer.deanBuilder(Object.class).create();
+        assertThat(deanContainer.getDean(Object.class.getSimpleName()), is(createdObj));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotAllowAddDeansWithSameId() throws Exception {
+        deanContainer.addDean("str", "test1");
+        deanContainer.addDean("str", "test2");
     }
 }

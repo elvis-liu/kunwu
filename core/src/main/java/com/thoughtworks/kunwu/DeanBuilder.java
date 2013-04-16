@@ -1,18 +1,19 @@
 package com.thoughtworks.kunwu;
 
-import com.google.common.base.Predicate;
 import com.thoughtworks.kunwu.reference.DeanReference;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import static com.thoughtworks.kunwu.utils.CollectionUtils.arrayFilter;
+import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
-public class DeanBuilder <T> {
+public class DeanBuilder<T> {
     private final DeanContainer deanContainer;
     private final Class<T> targetClass;
     private DeanReference[] constructorParamRefs;
+    private String deanId;
 
     DeanBuilder(DeanContainer deanContainer, Class<T> targetClass) {
         this.deanContainer = deanContainer;
@@ -24,74 +25,92 @@ public class DeanBuilder <T> {
         return this;
     }
 
+    public DeanBuilder<T> id(String deanId) {
+        this.deanId = deanId;
+        return this;
+    }
+
     public T create() {
-        if (deanContainer.getDean(targetClass) != null) {
-            return targetClass.cast(deanContainer.getDean(targetClass));
-        }
+        T createdObj = createNewInstance(getConstructor(), constructorParamRefs);
 
-        if (constructorParamRefs == null) {
-            constructorParamRefs = new DeanReference[0];
-        }
-
-        Constructor<T>[] matchedConstructors = findMatchedConstructors(targetClass, constructorParamRefs);
-        if (matchedConstructors.length > 1) {
-            throw new IllegalArgumentException("Cannot determine which constructor to use!");
-        }
-
-        if (matchedConstructors.length == 0) {
-            throw new IllegalArgumentException("Cannot find matched constructor!");
-        }
-
-        T createdObj = createNewInstance(matchedConstructors[0], constructorParamRefs);
-
-        deanContainer.addDean(createdObj);
+        deanContainer.addDean(getDeanId(), createdObj);
 
         return createdObj;
     }
 
-    private <T> Constructor<T>[] findMatchedConstructors(Class<T> targetClass, final DeanReference[] paramRefs) {
-        Constructor<T>[] allConstructors = (Constructor<T>[]) targetClass.getConstructors();
-        final Class<?>[] paramTypes = getParameterTypesFromRefs(paramRefs);
-
-        return arrayFilter(allConstructors, new Predicate<Constructor<T>>() {
-            @Override
-            public boolean apply(Constructor<T> input) {
-                return Arrays.equals(paramTypes, input.getParameterTypes());
-            }
-        });
-    }
-
-    private Class<?>[] getParameterTypesFromRefs(DeanReference[] paramRefs) {
-        final Class<?>[] paramTypes = new Class<?>[paramRefs.length];
-        for (int i = 0; i < paramRefs.length; i++) {
-            paramTypes[i] = paramRefs[i].getClassType();
+    private String getDeanId() {
+        if (deanId == null) {
+            return targetClass.getSimpleName();
+        } else {
+            return deanId;
         }
-        return paramTypes;
     }
 
-    private <T> T createNewInstance(Constructor<T> constructor, DeanReference[] paramRefs) {
-        Object[] parameters = new Object[paramRefs.length];
+    private Constructor<T> getConstructor() {
+        Set<Constructor<T>> matchedConstructors = findMatchedConstructors(targetClass, constructorParamRefs);
+        if (matchedConstructors.size() > 1) {
+            throw new IllegalArgumentException("Cannot determine which constructor to use!");
+        }
+
+        if (matchedConstructors.isEmpty()) {
+            throw new IllegalArgumentException("Cannot find matched constructor!");
+        }
+
+        return matchedConstructors.iterator().next();
+    }
+
+    private <T> Set<Constructor<T>> findMatchedConstructors(Class<T> targetClass, DeanReference[] paramRefs) {
+        Constructor<T>[] allConstructors = (Constructor<T>[]) targetClass.getConstructors();
+        if (paramRefs == null) {
+            paramRefs = new DeanReference[0];
+        }
+        Set<Constructor<T>> matchedConstructors = new HashSet<Constructor<T>>();
+
+        for (Constructor<T> constructor : allConstructors) {
+            Class<?>[] constructorParamTypes = constructor.getParameterTypes();
+            if (isParamRefsMatchWithTypes(paramRefs, constructorParamTypes)) {
+                matchedConstructors.add(constructor);
+            }
+        }
+
+        return matchedConstructors;
+    }
+
+    private boolean isParamRefsMatchWithTypes(DeanReference[] paramRefs, Class<?>[] paramTypes) {
+        if (paramRefs.length != paramTypes.length) {
+            return false;
+        }
+
         for (int i = 0; i < paramRefs.length; i++) {
-            Object param;
             switch (paramRefs[i].getRefType()) {
-                case CLASS: {
-                    param = deanContainer.getDean(paramRefs[i].getClassType());
-                    if (param == null) {
-                        throw new IllegalArgumentException("No matched Dean to new instance!");
+                case CLASS:
+                case VALUE: {
+                    if (!paramRefs[i].getClassType().equals(paramTypes[i])) {
+                        return false;
                     }
                     break;
                 }
-                case VALUE: {
-                    param = paramRefs[i].getValue();
+                case ID: {
+                    Object dean = deanContainer.getDean(paramRefs[i].getId());
+                    if (dean == null) {
+                        throw new IllegalArgumentException("No Dean with Id: " + paramRefs[i].getId());
+                    }
+                    if (!paramTypes[i].isAssignableFrom(dean.getClass())) {
+                        return false;
+                    }
                     break;
                 }
                 default: {
-                    param = null;
-                    break;
+                    fail("Unknown ref type: " + paramRefs[i].getRefType());
                 }
             }
-            parameters[i] = param;
         }
+
+        return true;
+    }
+
+    private <T> T createNewInstance(Constructor<T> constructor, DeanReference[] paramRefs) {
+        Object[] parameters = getReferencedDeans(paramRefs);
 
         try {
             return constructor.newInstance(parameters);
@@ -104,5 +123,43 @@ public class DeanBuilder <T> {
         }
 
         return null;
+    }
+
+    private Object[] getReferencedDeans(DeanReference[] paramRefs) {
+        if (paramRefs == null || paramRefs.length == 0) {
+            return new Object[0];
+        }
+
+        Object[] parameters = new Object[paramRefs.length];
+        for (int i = 0; i < paramRefs.length; i++) {
+            Object param;
+            switch (paramRefs[i].getRefType()) {
+                case CLASS: {
+                    param = deanContainer.getDean(paramRefs[i].getClassType().getSimpleName());
+                    if (param == null) {
+                        throw new IllegalArgumentException("No Dean of type: " + paramRefs[i].getClassType().getName());
+                    }
+                    break;
+                }
+                case VALUE: {
+                    param = paramRefs[i].getValue();
+                    break;
+                }
+                case ID: {
+                    param = deanContainer.getDean(paramRefs[i].getId());
+                    if (param == null) {
+                        throw new IllegalArgumentException("No Dean with Id: " + paramRefs[i].getId());
+                    }
+                    break;
+                }
+                default: {
+                    fail("Unknown ref type: " + paramRefs[i].getRefType());
+                    param = null;
+                    break;
+                }
+            }
+            parameters[i] = param;
+        }
+        return parameters;
     }
 }

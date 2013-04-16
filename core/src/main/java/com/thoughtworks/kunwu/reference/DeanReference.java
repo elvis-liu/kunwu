@@ -1,11 +1,13 @@
 package com.thoughtworks.kunwu.reference;
 
 import static com.thoughtworks.kunwu.reference.DeanReferenceType.CLASS;
+import static com.thoughtworks.kunwu.reference.DeanReferenceType.ID;
 import static com.thoughtworks.kunwu.reference.DeanReferenceType.VALUE;
 
 public class DeanReference {
     private final DeanReferenceType refType;
-    private final Class<?> classType;
+    private Class<?> classType;
+    private String id;
     private Object value;
 
     private DeanReference(Class<?> classType) {
@@ -19,6 +21,12 @@ public class DeanReference {
         this.refType = VALUE;
     }
 
+    public DeanReference(String id) {
+        this.id = id;
+        this.refType = ID;
+    }
+
+
     public DeanReferenceType getRefType() {
         return refType;
     }
@@ -29,6 +37,10 @@ public class DeanReference {
 
     public Object getValue() {
         return value;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public static DeanReference refByClass(Class<?> classType) {
@@ -61,5 +73,9 @@ public class DeanReference {
 
     public static DeanReference refByValue(double value) {
         return new DeanReference(value, Double.TYPE);
+    }
+
+    public static DeanReference refById(String id) {
+        return new DeanReference(id);
     }
 }
