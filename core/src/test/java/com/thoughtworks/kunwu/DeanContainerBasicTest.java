@@ -14,7 +14,7 @@ public class DeanContainerBasicTest {
 
     @Before
     public void setUp() throws Exception {
-        deanContainer = new DeanContainer();
+        deanContainer = new BasicDeanContainer();
     }
 
     @Test

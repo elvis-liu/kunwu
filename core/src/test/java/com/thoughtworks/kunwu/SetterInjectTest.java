@@ -13,7 +13,7 @@ public class SetterInjectTest {
 
     @Before
     public void setUp() throws Exception {
-        deanContainer = new DeanContainer();
+        deanContainer = new BasicDeanContainer();
     }
 
     @Test
