@@ -17,8 +17,8 @@ public class DeanContainer {
             throw new IllegalArgumentException("No Dean defined for given id: " + id);
         }
 
-        DeanBuilder deanBuilder = new DeanBuilder(this, deanDefinition);
-        return type.cast(deanBuilder.create());
+        DeanInstanceBuilder deanInstanceBuilder = new DeanInstanceBuilder(this, deanDefinition);
+        return type.cast(deanInstanceBuilder.buildInstance());
     }
 
     public String addDean(DeanDefinition deanDefinition) {

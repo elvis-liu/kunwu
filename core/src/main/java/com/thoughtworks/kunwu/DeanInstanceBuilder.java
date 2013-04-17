@@ -14,16 +14,16 @@ import static com.thoughtworks.kunwu.DeanDefinition.getDeanDefaultName;
 import static com.thoughtworks.kunwu.reference.DeanReferenceType.ID;
 import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
-public class DeanBuilder {
+public class DeanInstanceBuilder {
     private final DeanContainer deanContainer;
     private final DeanDefinition deanDefinition;
 
-    DeanBuilder(DeanContainer deanContainer, DeanDefinition deanDefinition) {
+    DeanInstanceBuilder(DeanContainer deanContainer, DeanDefinition deanDefinition) {
         this.deanContainer = deanContainer;
         this.deanDefinition = deanDefinition;
     }
 
-    public Object create() {
+    public Object buildInstance() {
         Object createdObj = createNewInstance(getConstructor(), deanDefinition.getConstructorParamRefs());
         injectProperties(createdObj);
 
