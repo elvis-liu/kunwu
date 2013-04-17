@@ -3,9 +3,7 @@ package com.thoughtworks.kunwu;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.thoughtworks.kunwu.reference.DeanReference.refByClass;
-import static com.thoughtworks.kunwu.reference.DeanReference.refById;
-import static com.thoughtworks.kunwu.reference.DeanReference.refByValue;
+import static com.thoughtworks.kunwu.reference.DeanReference.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -20,8 +18,12 @@ public class SetterInjectTest {
 
     @Test
     public void shouldInjectOnValueRef() throws Exception {
+        // given
+        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("intValue", refByValue(3));
+        String deanId = deanContainer.addDean(deanDefinition);
+
         // when
-        BasicTestClass testObj = deanContainer.deanBuilder(BasicTestClass.class).property("intValue", refByValue(3)).create();
+        BasicTestClass testObj = deanContainer.getDeanInstance(deanId, BasicTestClass.class);
 
         // then
         assertThat(testObj.getIntValue(), is(3));
@@ -29,16 +31,25 @@ public class SetterInjectTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotInjectOnIllegalProperty() throws Exception {
-        deanContainer.deanBuilder(BasicTestClass.class).property("notExisted", refByValue(3)).create();
+        // given
+        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("notExisted", refByValue(3));
+        String deanId = deanContainer.addDean(deanDefinition);
+
+        // when
+        deanContainer.getDeanInstance(deanId, BasicTestClass.class);
     }
 
     @Test
     public void shouldInjectOnIdRef() throws Exception {
         // given
-        deanContainer.deanBuilder(Integer.class).constructBy(refByValue(10)).id("integerDean").create();
+        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10)).id("integerDean");
+        deanContainer.addDean(integerDeanDefinition);
+
+        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("intValue", refById("integerDean"));
+        String deanId = deanContainer.addDean(deanDefinition);
 
         // when
-        BasicTestClass testObj = deanContainer.deanBuilder(BasicTestClass.class).property("intValue", refById("integerDean")).create();
+        BasicTestClass testObj = deanContainer.getDeanInstance(deanId, BasicTestClass.class);
 
         // then
         assertThat(testObj.getIntValue(), is(10));
@@ -47,10 +58,14 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectOnClassRef() throws Exception {
         // given
-        deanContainer.deanBuilder(Integer.class).constructBy(refByValue(10)).create();
+        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10));
+        deanContainer.addDean(integerDeanDefinition);
+
+        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("intValue", refByClass(Integer.class));
+        String deanId = deanContainer.addDean(deanDefinition);
 
         // when
-        BasicTestClass testObj = deanContainer.deanBuilder(BasicTestClass.class).property("intValue", refByClass(Integer.class)).create();
+        BasicTestClass testObj = deanContainer.getDeanInstance(deanId, BasicTestClass.class);
 
         // then
         assertThat(testObj.getIntValue(), is(10));
@@ -59,10 +74,14 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectOnParentClassProperty() throws Exception {
         // given
-        deanContainer.deanBuilder(Integer.class).constructBy(refByValue(10)).create();
+        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10));
+        deanContainer.addDean(integerDeanDefinition);
+
+        DeanDefinition deanDefinition = new DeanDefinition(ChildTestClass.class).property("intValue", refByClass(Integer.class));
+        String deanId = deanContainer.addDean(deanDefinition);
 
         // when
-        ChildTestClass testObj = deanContainer.deanBuilder(ChildTestClass.class).property("intValue", refByClass(Integer.class)).create();
+        ChildTestClass testObj = deanContainer.getDeanInstance(deanId, ChildTestClass.class);
 
         // then
         assertThat(testObj.getIntValue(), is(10));
@@ -71,10 +90,14 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectFromAssignableDean() throws Exception {
         // given
-        deanContainer.deanBuilder(Integer.class).constructBy(refByValue(10)).id("integerDean").create();
+        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10));
+        deanContainer.addDean(integerDeanDefinition);
+
+        DeanDefinition deanDefinition = new DeanDefinition(ChildTestClass.class).property("numberValue", refByClass(Integer.class));
+        String deanId = deanContainer.addDean(deanDefinition);
 
         // when
-        BasicTestClass testObj = deanContainer.deanBuilder(BasicTestClass.class).property("numberValue", refById("integerDean")).create();
+        ChildTestClass testObj = deanContainer.getDeanInstance(deanId, ChildTestClass.class);
 
         // then
         assertThat(testObj.getIntValue(), is(0));
@@ -84,18 +107,21 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectMultiProperties() throws Exception {
         // given
-        deanContainer.deanBuilder(Integer.class).constructBy(refByValue(10)).id("int1").create();
-        deanContainer.deanBuilder(Integer.class).constructBy(refByValue(20)).id("int2").create();
+        DeanDefinition int1DeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10)).id("int1");
+        deanContainer.addDean(int1DeanDefinition);
+
+        DeanDefinition int2DeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(20)).id("int2");
+        deanContainer.addDean(int2DeanDefinition);
+
+        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("numberValue", refById("int1")).property("intValue", refById("int2"));
+        String deanId = deanContainer.addDean(deanDefinition);
 
         // when
-        BasicTestClass testObj = deanContainer.deanBuilder(BasicTestClass.class)
-                .property("intValue", refById("int1"))
-                .property("numberValue", refById("int2"))
-                .create();
+        BasicTestClass testObj = deanContainer.getDeanInstance(deanId, BasicTestClass.class);
 
         // then
-        assertThat(testObj.getIntValue(), is(10));
-        assertThat(testObj.getNumberValue().intValue(), is(20));
+        assertThat(testObj.getNumberValue().intValue(), is(10));
+        assertThat(testObj.getIntValue(), is(20));
     }
 
     public static class BasicTestClass {

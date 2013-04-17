@@ -4,7 +4,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.thoughtworks.kunwu.reference.DeanReference.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ConstructorInjectTest {
@@ -17,354 +18,278 @@ public class ConstructorInjectTest {
     }
 
     @Test
-    public void shouldInjectPOJOWithSingleConstructorSingleParam() throws Exception {
-        // given
-        TestDeanA dean = deanContainer.deanBuilder(TestDeanA.class).create();
-        dean.setValue(100);
+    public void shouldInjectWhenRefByValue() throws Exception {
+        DeanDefinition deanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3));
+        String deanId = deanContainer.addDean(deanDefinition);
 
-        // when
-        ClassWithSingleConstructorSingleParam testPOJO = deanContainer.deanBuilder(ClassWithSingleConstructorSingleParam.class).constructBy(refByClass(TestDeanA.class)).create();
-
-        // then
-        assertThat(testPOJO.getDean().getValue(), is(100));
+        assertThat(deanContainer.getDeanInstance(deanId, Integer.class), is(3));
     }
 
     @Test
-    public void shouldInjectPOJOWithSingleConstructorMultiParams() throws Exception {
+    public void shouldInjectWhenRefByClass() throws Exception {
         // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).create();
-        deanA.setValue(50);
-        TestDeanB deanB = deanContainer.deanBuilder(TestDeanB.class).create();
-        deanB.setValue("test");
+        DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3));
+        deanContainer.addDean(intDeanDefinition);
+
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refByClass(Integer.class));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
 
         // when
-        ClassWithSingleConstructorMultiParams testPOJO = deanContainer.deanBuilder(ClassWithSingleConstructorMultiParams.class).constructBy(refByClass(TestDeanA.class), refByClass(TestDeanB.class)).create();
+        BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
 
         // then
-        assertThat(testPOJO.getDeanA().getValue(), is(50));
-        assertThat(testPOJO.getDeanB().getValue(), is("test"));
+        assertThat(testObj.getIntegerValue(), is(3));
     }
 
     @Test
-    public void shouldInjectPOJOWithMultiConstructorsSingleParam() throws Exception {
+    public void shouldInjectWhenRefByPrimitiveTypeForWrapperDean() throws Exception {
         // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).create();
-        deanA.setValue(50);
-        TestDeanB deanB = deanContainer.deanBuilder(TestDeanB.class).create();
-        deanB.setValue("test");
+        DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("int");
+        deanContainer.addDean(intDeanDefinition);
+
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refByClass(int.class));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
 
         // when
-        ClassWithMultiConstructorsSingleParam testPOJO = deanContainer.deanBuilder(ClassWithMultiConstructorsSingleParam.class).constructBy(refByClass(TestDeanB.class)).create();
+        BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
 
         // then
-        assertThat(testPOJO.getDeanA(), nullValue());
-        assertThat(testPOJO.getDeanB().getValue(), is("test"));
+        assertThat(testObj.getIntegerValue(), nullValue());
+        assertThat(testObj.getIntValue(), is(3));
+    }
+
+    @Test
+    public void shouldInjectWhenRefById() throws Exception {
+        // given
+        DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("intDean");
+        deanContainer.addDean(intDeanDefinition);
+
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refById("intDean"));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
+
+        // when
+        BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
+
+        // then
+        assertThat(testObj.getIntegerValue(), is(3));
+        assertThat(testObj.getIntValue(), is(0));
+    }
+
+    @Test
+    public void shouldInjectWhenRefByIdFromAssignableTypeDean() throws Exception {
+        // given
+        DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("intDean");
+        deanContainer.addDean(intDeanDefinition);
+
+        DeanDefinition testDeanDefinition = new DeanDefinition(ConstructorWithOnlyNumberParamClass.class)
+                .constructBy(refById("intDean"));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
+
+        // when
+        ConstructorWithOnlyNumberParamClass testObj = deanContainer.getDeanInstance(testDeanId, ConstructorWithOnlyNumberParamClass.class);
+
+        // then
+        assertThat(testObj.getNumberValue().intValue(), is(3));
+    }
+
+    @Test
+    public void shouldInjectWhenConstructorHasMultiParams() throws Exception {
+        // given
+        DeanDefinition stringDeanDefinition = new DeanDefinition(String.class).constructBy(refByValue("test"));
+        deanContainer.addDean(stringDeanDefinition);
+
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refByClass(String.class), refByValue(3));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
+
+        // when
+        BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
+
+        // then
+        assertThat(testObj.getIntegerValue(), nullValue());
+        assertThat(testObj.getIntValue(), is(3));
+        assertThat(testObj.getStringValue(), is("test"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionIfNoMatchedConstructor() throws Exception {
-        deanContainer.deanBuilder(ClassWithMultiConstructorsSingleParam.class).constructBy(refByClass(String.class)).create();
+        // given
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class)
+                .constructBy(refByClass(String.class), refByClass(String.class));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
+
+        // when
+        deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionIfNoMatchedDeanForConstructor() throws Exception {
-        // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).create();
-        deanA.setValue(50);
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class)
+                .constructBy(refByClass(Integer.class));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
 
         // when
-        deanContainer.deanBuilder(ClassWithMultiConstructorsSingleParam.class).constructBy(refByClass(TestDeanB.class)).create();
+        deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
     }
 
     @Test
-    public void shouldUseDefaultConstructor() throws Exception {
+    public void shouldUseDefaultConstructorWithoutConstructorSpecified() throws Exception {
         // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).create();
-        deanA.setValue(50);
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class);
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
 
         // when
-        ClassWithDefaultConstructor testPOJO = deanContainer.deanBuilder(ClassWithDefaultConstructor.class).constructBy().create();
+        BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
 
         // then
-        assertThat(testPOJO, notNullValue());
-        assertThat(testPOJO.getDeanA(), nullValue());
-    }
-
-    @Test
-    public void shouldInjectPOJOWithMultiConstructorSameTypeParamsDifferentOrder() throws Exception {
-        // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).create();
-        deanA.setValue(50);
-        TestDeanB deanB = deanContainer.deanBuilder(TestDeanB.class).create();
-        deanB.setValue("test");
-
-        // when
-        ClassWithMultiConstructorsSameTypeParams testPOJO = deanContainer.deanBuilder(ClassWithMultiConstructorsSameTypeParams.class).constructBy(refByClass(TestDeanB.class), refByClass(TestDeanA.class)).create();
-
-        // then
-        assertThat(testPOJO.getBy(), is("B,A"));
+        assertThat(testObj.getStringValue(), is("defaultConstructor"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionEvenHaveAssignableDeanOfChildTypes() throws Exception {
+    public void shouldNotInjectWhenRefByClassEvenHaveAssignableDeans() throws Exception {
         // given
-        TestDeanC deanC = deanContainer.deanBuilder(TestDeanC.class).create();
-        deanC.setValue(25);
-        deanC.setAnotherValue("deanC");
+        DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3));
+        deanContainer.addDean(intDeanDefinition);
+
+        DeanDefinition testDeanDefinition = new DeanDefinition(ConstructorWithOnlyNumberParamClass.class)
+                .constructBy(refByClass(Number.class));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
 
         // when
-        deanContainer.deanBuilder(ClassWithSingleConstructorSingleParam.class).constructBy(refByClass(TestDeanA.class)).create();
+        deanContainer.getDeanInstance(testDeanId, ConstructorWithOnlyNumberParamClass.class);
     }
 
     @Test
-    public void shouldInjectPOJOWithOnlyValueRefs() throws Exception {
-        // when
-        ClassWithOnlyValueRefs testPOJO = deanContainer.deanBuilder(ClassWithOnlyValueRefs.class).constructBy(refByValue(1), refByValue("test")).create();
-
-        // then
-        assertThat(testPOJO.getIntValue(), is(1));
-        assertThat(testPOJO.getStringValue(), is("test"));
-    }
-
-    @Test
-    public void shouldInjectPOJOWithMixedValueAndClassRefs() throws Exception {
+    public void shouldInjectWithMixedRefs() throws Exception {
         // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).create();
-        deanA.setValue(50);
+        DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("intDean");
+        deanContainer.addDean(intDeanDefinition);
+
+        DeanDefinition booleanDeanDefinition = new DeanDefinition(Boolean.class).constructBy(refByValue(true));
+        deanContainer.addDean(booleanDeanDefinition);
+
+        DeanDefinition testDeanDefinition = new DeanDefinition(ClassWithMixedValueConstructor.class)
+                .constructBy(refByValue((short) 12), refByValue(13l), refByClass(boolean.class), refByValue((byte) 14), refByValue(15.0), refByValue((float) 16.0), refById("intDean"));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
 
         // when
-        ClassWithMixedValueAndDeanConstructor testPOJO = deanContainer.deanBuilder(ClassWithMixedValueAndDeanConstructor.class).constructBy(refByValue((short) 12), refByValue(13l), refByValue((byte) 14), refByValue(15.0), refByValue((float) 16.0), refByClass(TestDeanA.class)).create();
+        ClassWithMixedValueConstructor testObj = deanContainer.getDeanInstance(testDeanId, ClassWithMixedValueConstructor.class);
 
         // then
-        assertThat(testPOJO.getShortValue(), is((short)12));
-        assertThat(testPOJO.getLongValue(), is(13l));
-        assertThat(testPOJO.getByteValue(), is((byte)14));
-        assertThat(testPOJO.getDoubleValue(), is(15.0));
-        assertThat(testPOJO.getFloatValue(), is((float)16.0));
-        assertThat(testPOJO.getDeanA().getValue(), is(50));
-    }
-
-    @Test
-    public void shouldInjectPOJOWithIdRef() throws Exception {
-        // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).id("deanA1").create();
-        deanA.setValue(50);
-
-        deanA = deanContainer.deanBuilder(TestDeanA.class).id("deanA2").create();
-        deanA.setValue(100);
-
-        // when
-        ClassWithSingleConstructorSingleParam testPOJO = deanContainer.deanBuilder(ClassWithSingleConstructorSingleParam.class).constructBy(refById("deanA2")).create();
-
-        // then
-        assertThat(testPOJO.getDean().getValue(), is(100));
+        assertThat(testObj.getShortValue(), is((short)12));
+        assertThat(testObj.getLongValue(), is(13l));
+        assertThat(testObj.getByteValue(), is((byte)14));
+        assertThat(testObj.getDoubleValue(), is(15.0));
+        assertThat(testObj.getFloatValue(), is((float)16.0));
+        assertThat(testObj.getIntValue(), is(3));
+        assertThat(testObj.isBooleanValue(), is(true));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionWithInvalidIdRef() throws Exception {
-        // when
-        deanContainer.deanBuilder(ClassWithSingleConstructorSingleParam.class).constructBy(refById("deanA")).create();
-    }
-
-    @Test
-    public void shouldInjectPOJOWithDeanOfChildTypes() throws Exception {
-        // given
-        TestDeanA deanA = deanContainer.deanBuilder(TestDeanA.class).id("deanA").create();
-        deanA.setValue(50);
-
-        TestDeanC deanC = deanContainer.deanBuilder(TestDeanC.class).id("deanC").create();
-        deanC.setValue(100);
-        deanC.setAnotherValue("test");
+    public void shouldNotInjectWithInvalidIdRef() throws Exception {
+        DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class)
+                .constructBy(refById("notExisted"));
+        String testDeanId = deanContainer.addDean(testDeanDefinition);
 
         // when
-        ClassWithSingleConstructorSingleParam testPOJO = deanContainer.deanBuilder(ClassWithSingleConstructorSingleParam.class).constructBy(refById("deanC")).create();
-
-        // then
-        assertThat(testPOJO.getDean(), instanceOf(TestDeanC.class));
-        assertThat(testPOJO.getDean().getValue(), is(100));
+        deanContainer.getDeanInstance(testDeanId);
     }
 
-    private static class ClassWithSingleConstructorSingleParam {
-        private TestDeanA dean;
-
-        public ClassWithSingleConstructorSingleParam(TestDeanA dean) {
-            this.dean = dean;
-        }
-
-        private TestDeanA getDean() {
-            return dean;
-        }
-    }
-
-    private static class ClassWithSingleConstructorMultiParams {
-        private TestDeanA deanA;
-        private TestDeanB deanB;
-
-        public ClassWithSingleConstructorMultiParams(TestDeanA deanA, TestDeanB deanB) {
-            this.deanA = deanA;
-            this.deanB = deanB;
-        }
-
-        private TestDeanA getDeanA() {
-            return deanA;
-        }
-
-        private TestDeanB getDeanB() {
-            return deanB;
-        }
-    }
-
-    public static class TestDeanA {
-        private int value;
-
-        public int getValue() {
-            return value;
-        }
-
-        public void setValue(int value) {
-            this.value = value;
-        }
-    }
-
-    public static class TestDeanB {
-        private String value;
-
-        private String getValue() {
-            return value;
-        }
-
-        private void setValue(String value) {
-            this.value = value;
-        }
-    }
-
-    public static class ClassWithMultiConstructorsSingleParam {
-        private TestDeanA deanA;
-        private TestDeanB deanB;
-
-        @SuppressWarnings("unused")
-        public ClassWithMultiConstructorsSingleParam(TestDeanA deanA) {
-            this.deanA = deanA;
-        }
-
-        @SuppressWarnings("unused")
-        public ClassWithMultiConstructorsSingleParam(TestDeanB deanB) {
-            this.deanB = deanB;
-        }
-
-        private TestDeanA getDeanA() {
-            return deanA;
-        }
-
-        private TestDeanB getDeanB() {
-            return deanB;
-        }
-    }
-
-    public static class ClassWithDefaultConstructor {
-        private TestDeanA deanA;
-
-        @SuppressWarnings("unused")
-        public ClassWithDefaultConstructor() {
-        }
-
-        @SuppressWarnings("unused")
-        public ClassWithDefaultConstructor(TestDeanA deanA) {
-            this.deanA = deanA;
-        }
-
-        private TestDeanA getDeanA() {
-            return deanA;
-        }
-    }
-
-    public static class ClassWithMultiConstructorsSameTypeParams {
-        private String by;
-
-        @SuppressWarnings("unused")
-        public ClassWithMultiConstructorsSameTypeParams(TestDeanA deanA, TestDeanB deanB) {
-            this.by = "A,B";
-        }
-
-        @SuppressWarnings("unused")
-        public ClassWithMultiConstructorsSameTypeParams(TestDeanB deanB, TestDeanA deanA) {
-            this.by = "B,A";
-        }
-
-        private String getBy() {
-            return by;
-        }
-    }
-
-    public static class TestDeanC extends TestDeanA {
-        private String anotherValue;
-
-        public String getAnotherValue() {
-            return anotherValue;
-        }
-
-        private void setAnotherValue(String anotherValue) {
-            this.anotherValue = anotherValue;
-        }
-    }
-
-    public static class ClassWithOnlyValueRefs {
+    public static class ClassWithMixedValueConstructor {
+        private short shortValue;
+        private long longValue;
+        private boolean booleanValue;
+        private byte byteValue;
+        private double doubleValue;
+        private float floatValue;
         private int intValue;
+
+        public ClassWithMixedValueConstructor(short shortValue, long longValue, boolean booleanValue, byte byteValue, double doubleValue, float floatValue, Integer intValue) {
+            this.shortValue = shortValue;
+            this.longValue = longValue;
+            this.booleanValue = booleanValue;
+            this.byteValue = byteValue;
+            this.doubleValue = doubleValue;
+            this.floatValue = floatValue;
+            this.intValue = intValue;
+        }
+
+        public short getShortValue() {
+            return shortValue;
+        }
+
+        public long getLongValue() {
+            return longValue;
+        }
+
+        public byte getByteValue() {
+            return byteValue;
+        }
+
+        public double getDoubleValue() {
+            return doubleValue;
+        }
+
+        public float getFloatValue() {
+            return floatValue;
+        }
+
+        public boolean isBooleanValue() {
+            return booleanValue;
+        }
+
+        public int getIntValue() {
+            return intValue;
+        }
+    }
+
+    public static class BasicTestClass {
+        private int intValue;
+        private Integer integerValue;
         private String stringValue;
 
-        public ClassWithOnlyValueRefs(int intValue, String stringValue) {
-            this.intValue = intValue;
-            this.stringValue = stringValue;
+        @SuppressWarnings("unused")
+        public BasicTestClass() {
+            stringValue = "defaultConstructor";
         }
 
-        private int getIntValue() {
+        @SuppressWarnings("unused")
+        public BasicTestClass(int intValue) {
+            this.intValue = intValue;
+        }
+
+        @SuppressWarnings("unused")
+        public BasicTestClass(Integer integerValue) {
+            this.integerValue = integerValue;
+        }
+
+        @SuppressWarnings("unused")
+        public BasicTestClass(String stringValue, int intValue) {
+            this.stringValue = stringValue;
+            this.intValue = intValue;
+        }
+
+        public int getIntValue() {
             return intValue;
         }
 
-        private String getStringValue() {
+        public Integer getIntegerValue() {
+            return integerValue;
+        }
+
+        public String getStringValue() {
             return stringValue;
         }
     }
 
-    public static class ClassWithMixedValueAndDeanConstructor {
-        private short shortValue;
-        private long longValue;
-        private byte byteValue;
-        private double doubleValue;
-        private float floatValue;
-        private TestDeanA deanA;
+    public static class ConstructorWithOnlyNumberParamClass {
+        private Number numberValue;
 
-        public ClassWithMixedValueAndDeanConstructor(short shortValue, long longValue, byte byteValue, double doubleValue, float floatValue, TestDeanA deanA) {
-            this.shortValue = shortValue;
-            this.longValue = longValue;
-            this.byteValue = byteValue;
-            this.doubleValue = doubleValue;
-            this.floatValue = floatValue;
-            this.deanA = deanA;
+        public ConstructorWithOnlyNumberParamClass(Number numberValue) {
+            this.numberValue = numberValue;
         }
 
-        private short getShortValue() {
-            return shortValue;
-        }
-
-        private long getLongValue() {
-            return longValue;
-        }
-
-        private byte getByteValue() {
-            return byteValue;
-        }
-
-        private double getDoubleValue() {
-            return doubleValue;
-        }
-
-        private float getFloatValue() {
-            return floatValue;
-        }
-
-        private TestDeanA getDeanA() {
-            return deanA;
+        public Number getNumberValue() {
+            return numberValue;
         }
     }
 }

@@ -7,50 +7,34 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
+import static com.thoughtworks.kunwu.DeanDefinition.getDeanDefaultName;
 import static com.thoughtworks.kunwu.reference.DeanReferenceType.ID;
 import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
-public class DeanBuilder<T> {
+public class DeanBuilder {
     private final DeanContainer deanContainer;
-    private final Class<T> targetClass;
-    private DeanReference[] constructorParamRefs;
-    private String deanId;
-    private Map<String, DeanReference> propertyRefs = new HashMap<String, DeanReference>();
+    private final DeanDefinition deanDefinition;
 
-    DeanBuilder(DeanContainer deanContainer, Class<T> targetClass) {
+    DeanBuilder(DeanContainer deanContainer, DeanDefinition deanDefinition) {
         this.deanContainer = deanContainer;
-        this.targetClass = targetClass;
+        this.deanDefinition = deanDefinition;
     }
 
-    public DeanBuilder<T> constructBy(DeanReference... paramRefs) {
-        constructorParamRefs = paramRefs;
-        return this;
-    }
-
-    public DeanBuilder<T> id(String deanId) {
-        this.deanId = deanId;
-        return this;
-    }
-
-    public T create() {
-        T createdObj = createNewInstance(getConstructor(), constructorParamRefs);
+    public Object create() {
+        Object createdObj = createNewInstance(getConstructor(), deanDefinition.getConstructorParamRefs());
         injectProperties(createdObj);
-
-        deanContainer.addDean(getDeanId(), createdObj);
 
         return createdObj;
     }
 
-    private void injectProperties(T targetObj) {
-        for (String propertyName : propertyRefs.keySet()) {
-            DeanReference ref = propertyRefs.get(propertyName);
+    private void injectProperties(Object targetObj) {
+        for (String propertyName : deanDefinition.getPropertyRefs().keySet()) {
+            DeanReference ref = deanDefinition.getPropertyRefs().get(propertyName);
             try {
-                PropertyDescriptor propertyDescriptor = new PropertyDescriptor(propertyName, targetClass);
+                PropertyDescriptor propertyDescriptor = new PropertyDescriptor(propertyName, deanDefinition.getTargetClass());
                 Method method = propertyDescriptor.getWriteMethod();
                 method.invoke(targetObj, getRefObject(ref));
             } catch (InvocationTargetException e) {
@@ -63,21 +47,8 @@ public class DeanBuilder<T> {
         }
     }
 
-    private static Method getSetterMethod(Class<?> targetObjClass, String propertyName, Class<?> propertyClassType) throws NoSuchMethodException {
-        String setterMethodName = String.format("set%C%s", propertyName.charAt(0), propertyName.substring(1));
-        return targetObjClass.getMethod(setterMethodName, propertyClassType);
-    }
-
-    private String getDeanId() {
-        if (deanId == null) {
-            return targetClass.getSimpleName();
-        } else {
-            return deanId;
-        }
-    }
-
-    private Constructor<T> getConstructor() {
-        Set<Constructor<T>> matchedConstructors = findMatchedConstructors(constructorParamRefs);
+    private Constructor<?> getConstructor() {
+        Set<Constructor<?>> matchedConstructors = findMatchedConstructors(deanDefinition.getConstructorParamRefs());
         if (matchedConstructors.size() > 1) {
             throw new IllegalArgumentException("Cannot determine which constructor to use!");
         }
@@ -89,14 +60,14 @@ public class DeanBuilder<T> {
         return matchedConstructors.iterator().next();
     }
 
-    private <T> Set<Constructor<T>> findMatchedConstructors(DeanReference[] paramRefs) {
-        Constructor<T>[] allConstructors = (Constructor<T>[]) targetClass.getConstructors();
+    private Set<Constructor<?>> findMatchedConstructors(DeanReference[] paramRefs) {
+        Constructor<?>[] allConstructors = deanDefinition.getTargetClass().getConstructors();
         if (paramRefs == null) {
             paramRefs = new DeanReference[0];
         }
-        Set<Constructor<T>> matchedConstructors = new HashSet<Constructor<T>>();
+        Set<Constructor<?>> matchedConstructors = new HashSet<Constructor<?>>();
 
-        for (Constructor<T> constructor : allConstructors) {
+        for (Constructor<?> constructor : allConstructors) {
             Class<?>[] constructorParamTypes = constructor.getParameterTypes();
             if (isParamRefsMatchWithTypes(paramRefs, constructorParamTypes)) {
                 matchedConstructors.add(constructor);
@@ -137,7 +108,7 @@ public class DeanBuilder<T> {
                 break;
             }
             case ID: {
-                Object dean = deanContainer.getDean(ref.getId());
+                Object dean = deanContainer.getDeanInstance(ref.getId());
                 if (dean == null) {
                     throw new IllegalArgumentException("No Dean with Id: " + ref.getId());
                 }
@@ -186,7 +157,7 @@ public class DeanBuilder<T> {
         Object refObj;
         switch (ref.getRefType()) {
             case CLASS: {
-                refObj = deanContainer.getDean(ref.getClassType().getSimpleName());
+                refObj = deanContainer.getDeanInstance(getDeanDefaultName(ref.getClassType()));
                 if (refObj == null) {
                     throw new IllegalArgumentException("No Dean of type: " + ref.getClassType().getName());
                 }
@@ -197,7 +168,7 @@ public class DeanBuilder<T> {
                 break;
             }
             case ID: {
-                refObj = deanContainer.getDean(ref.getId());
+                refObj = deanContainer.getDeanInstance(ref.getId());
                 if (refObj == null) {
                     throw new IllegalArgumentException("No Dean with Id: " + ref.getId());
                 }
@@ -211,10 +182,5 @@ public class DeanBuilder<T> {
         }
 
         return refObj;
-    }
-
-    public DeanBuilder<T> property(String propertyName, DeanReference ref) {
-        propertyRefs.put(propertyName, ref);
-        return this;
     }
 }
