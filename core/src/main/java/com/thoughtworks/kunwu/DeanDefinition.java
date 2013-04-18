@@ -8,11 +8,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.thoughtworks.kunwu.DeanScope.SINGLETON;
+import static com.thoughtworks.kunwu.DeanScope.scopeNameOf;
+
 public class DeanDefinition {
+    public static final DeanScope DEFAULT_SCOPE = SINGLETON;
+
     private final Class<?> targetClass;
     private DeanReference[] constructorParamRefs;
     private String deanId;
     private Map<String, DeanReference> propertyRefs = new HashMap<String, DeanReference>();
+    private DeanScope scope;
 
     DeanDefinition(Class<?> targetClass) {
         this.targetClass = targetClass;
@@ -34,7 +40,7 @@ public class DeanDefinition {
         }
     }
 
-    public Map<String, DeanReference> getPropertyRefs() {
+    Map<String, DeanReference> getPropertyRefs() {
         return propertyRefs;
     }
 
@@ -53,9 +59,26 @@ public class DeanDefinition {
         return this;
     }
 
+    public DeanDefinition scope(String scopeName) {
+        return scope(scopeNameOf(scopeName));
+    }
+
+    public DeanDefinition scope(DeanScope scope) {
+        this.scope = scope;
+        return this;
+    }
+
     public static String getDeanDefaultName(Class<?> deanClass) {
         String className = deanClass.getSimpleName();
         return Introspector.decapitalize(className);
+    }
+
+    public DeanScope getScope() {
+        if (scope == null) {
+            return DEFAULT_SCOPE;
+        } else {
+            return scope;
+        }
     }
 
     public static DeanDefinition copyOf(DeanDefinition from) {
@@ -65,6 +88,7 @@ public class DeanDefinition {
         }
         copied.deanId = from.deanId;
         copied.propertyRefs = ImmutableMap.copyOf(from.getPropertyRefs());
+        copied.scope = from.scope;
 
         return copied;
     }

@@ -2,6 +2,7 @@ package com.thoughtworks.kunwu;
 
 import org.junit.Test;
 
+import static com.thoughtworks.kunwu.DeanScope.SINGLETON;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -13,5 +14,15 @@ public class DeanDefinitionTest {
         assertThat(DeanDefinition.getDeanDefaultName(DeanContainer.class), is("deanContainer"));
         assertThat(DeanDefinition.getDeanDefaultName((new int[0]).getClass()), is("int[]"));
         assertThat(DeanDefinition.getDeanDefaultName((new Object() {}).getClass()), is(""));
+    }
+
+    @Test
+    public void testDefaultScope() throws Exception {
+        assertThat(new DeanDefinition(Object.class).getScope(), is(SINGLETON));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void throwExceptionOnIllegalScopeName() throws Exception {
+        new DeanDefinition(Object.class).scope("illegal");
     }
 }

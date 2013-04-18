@@ -14,13 +14,13 @@ public class ConstructorInjectTest {
 
     @Before
     public void setUp() throws Exception {
-        deanContainer = new BasicDeanContainer();
+        deanContainer = new CoreDeanContainer();
     }
 
     @Test
     public void shouldInjectWhenRefByValue() throws Exception {
         DeanDefinition deanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3));
-        String deanId = deanContainer.addDean(deanDefinition);
+        String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         assertThat(deanContainer.getDeanInstance(deanId, Integer.class), is(3));
     }
@@ -29,10 +29,10 @@ public class ConstructorInjectTest {
     public void shouldInjectWhenRefByClass() throws Exception {
         // given
         DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3));
-        deanContainer.addDean(intDeanDefinition);
+        deanContainer.addDeanDefinition(intDeanDefinition);
 
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refByClass(Integer.class));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
@@ -45,10 +45,10 @@ public class ConstructorInjectTest {
     public void shouldInjectWhenRefByPrimitiveTypeForWrapperDean() throws Exception {
         // given
         DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("int");
-        deanContainer.addDean(intDeanDefinition);
+        deanContainer.addDeanDefinition(intDeanDefinition);
 
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refByClass(int.class));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
@@ -62,10 +62,10 @@ public class ConstructorInjectTest {
     public void shouldInjectWhenRefById() throws Exception {
         // given
         DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("intDean");
-        deanContainer.addDean(intDeanDefinition);
+        deanContainer.addDeanDefinition(intDeanDefinition);
 
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refById("intDean"));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
@@ -79,11 +79,11 @@ public class ConstructorInjectTest {
     public void shouldInjectWhenRefByIdFromAssignableTypeDean() throws Exception {
         // given
         DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("intDean");
-        deanContainer.addDean(intDeanDefinition);
+        deanContainer.addDeanDefinition(intDeanDefinition);
 
         DeanDefinition testDeanDefinition = new DeanDefinition(ConstructorWithOnlyNumberParamClass.class)
                 .constructBy(refById("intDean"));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         ConstructorWithOnlyNumberParamClass testObj = deanContainer.getDeanInstance(testDeanId, ConstructorWithOnlyNumberParamClass.class);
@@ -96,10 +96,10 @@ public class ConstructorInjectTest {
     public void shouldInjectWhenConstructorHasMultiParams() throws Exception {
         // given
         DeanDefinition stringDeanDefinition = new DeanDefinition(String.class).constructBy(refByValue("test"));
-        deanContainer.addDean(stringDeanDefinition);
+        deanContainer.addDeanDefinition(stringDeanDefinition);
 
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class).constructBy(refByClass(String.class), refByValue(3));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
@@ -115,7 +115,7 @@ public class ConstructorInjectTest {
         // given
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class)
                 .constructBy(refByClass(String.class), refByClass(String.class));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
@@ -125,7 +125,7 @@ public class ConstructorInjectTest {
     public void shouldThrowExceptionIfNoMatchedDeanForConstructor() throws Exception {
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class)
                 .constructBy(refByClass(Integer.class));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
@@ -135,7 +135,7 @@ public class ConstructorInjectTest {
     public void shouldUseDefaultConstructorWithoutConstructorSpecified() throws Exception {
         // given
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class);
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         BasicTestClass testObj = deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
@@ -148,11 +148,11 @@ public class ConstructorInjectTest {
     public void shouldNotInjectWhenRefByClassEvenHaveAssignableDeans() throws Exception {
         // given
         DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3));
-        deanContainer.addDean(intDeanDefinition);
+        deanContainer.addDeanDefinition(intDeanDefinition);
 
         DeanDefinition testDeanDefinition = new DeanDefinition(ConstructorWithOnlyNumberParamClass.class)
                 .constructBy(refByClass(Number.class));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         deanContainer.getDeanInstance(testDeanId, ConstructorWithOnlyNumberParamClass.class);
@@ -162,14 +162,14 @@ public class ConstructorInjectTest {
     public void shouldInjectWithMixedRefs() throws Exception {
         // given
         DeanDefinition intDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(3)).id("intDean");
-        deanContainer.addDean(intDeanDefinition);
+        deanContainer.addDeanDefinition(intDeanDefinition);
 
         DeanDefinition booleanDeanDefinition = new DeanDefinition(Boolean.class).constructBy(refByValue(true));
-        deanContainer.addDean(booleanDeanDefinition);
+        deanContainer.addDeanDefinition(booleanDeanDefinition);
 
         DeanDefinition testDeanDefinition = new DeanDefinition(ClassWithMixedValueConstructor.class)
                 .constructBy(refByValue((short) 12), refByValue(13l), refByClass(boolean.class), refByValue((byte) 14), refByValue(15.0), refByValue((float) 16.0), refById("intDean"));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         ClassWithMixedValueConstructor testObj = deanContainer.getDeanInstance(testDeanId, ClassWithMixedValueConstructor.class);
@@ -188,7 +188,7 @@ public class ConstructorInjectTest {
     public void shouldNotInjectWithInvalidIdRef() throws Exception {
         DeanDefinition testDeanDefinition = new DeanDefinition(BasicTestClass.class)
                 .constructBy(refById("notExisted"));
-        String testDeanId = deanContainer.addDean(testDeanDefinition);
+        String testDeanId = deanContainer.addDeanDefinition(testDeanDefinition);
 
         // when
         deanContainer.getDeanInstance(testDeanId);

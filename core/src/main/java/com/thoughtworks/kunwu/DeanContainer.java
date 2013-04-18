@@ -1,9 +1,13 @@
 package com.thoughtworks.kunwu;
 
-public interface DeanContainer {
-    Object getDeanInstance(String id);
+public abstract class DeanContainer {
+    public abstract Object getDeanInstance(String id);
 
-    <T> T getDeanInstance(String id, Class<T> type);
+    public <T> T getDeanInstance(String id, Class<T> type) {
+        return type.cast(getDeanInstance(id));
+    }
 
-    String addDean(DeanDefinition deanDefinition);
+    public abstract String addDeanDefinition(DeanDefinition deanDefinition);
+
+    public abstract DeanDefinition getDeanDefinition(String id);
 }
