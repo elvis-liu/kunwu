@@ -1,9 +1,10 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.container;
 
+import com.thoughtworks.kunwu.dean.DeanDefinition;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.thoughtworks.kunwu.reference.DeanReference.refByValue;
+import static com.thoughtworks.kunwu.dean.DeanReference.refByValue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 

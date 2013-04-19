@@ -1,4 +1,7 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.container;
+
+import com.thoughtworks.kunwu.dean.DeanDefinition;
+import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,8 +1,4 @@
-package com.thoughtworks.kunwu.reference;
-
-import static com.thoughtworks.kunwu.reference.DeanReferenceType.CLASS;
-import static com.thoughtworks.kunwu.reference.DeanReferenceType.ID;
-import static com.thoughtworks.kunwu.reference.DeanReferenceType.VALUE;
+package com.thoughtworks.kunwu.dean;
 
 public class DeanReference {
     private final DeanReferenceType refType;
@@ -12,18 +8,18 @@ public class DeanReference {
 
     private DeanReference(Class<?> classType) {
         this.classType = classType;
-        this.refType = CLASS;
+        this.refType = DeanReferenceType.CLASS;
     }
 
     private DeanReference(Object value, Class<?> classType) {
         this.value = value;
         this.classType = classType;
-        this.refType = VALUE;
+        this.refType = DeanReferenceType.VALUE;
     }
 
     public DeanReference(String id) {
         this.id = id;
-        this.refType = ID;
+        this.refType = DeanReferenceType.ID;
     }
 
 

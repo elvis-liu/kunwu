@@ -1,4 +1,6 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.container;
+
+import com.thoughtworks.kunwu.dean.DeanDefinition;
 
 public abstract class DeanContainer {
     public abstract Object getDeanInstance(String id);

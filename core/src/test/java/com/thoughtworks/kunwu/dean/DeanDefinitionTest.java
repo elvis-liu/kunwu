@@ -1,8 +1,9 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.dean;
 
+import com.thoughtworks.kunwu.container.DeanContainer;
 import org.junit.Test;
 
-import static com.thoughtworks.kunwu.DeanScope.SINGLETON;
+import static com.thoughtworks.kunwu.dean.DeanScope.SINGLETON;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 

@@ -1,4 +1,6 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.container;
+
+import com.thoughtworks.kunwu.dean.DeanDefinition;
 
 public class ChildDeanContainer extends DeanContainer {
     private final DeanContainer parentContainer;

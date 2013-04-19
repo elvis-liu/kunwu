@@ -1,4 +1,4 @@
-package com.thoughtworks.kunwu.reference;
+package com.thoughtworks.kunwu.dean;
 
 public enum DeanReferenceType {
     CLASS,

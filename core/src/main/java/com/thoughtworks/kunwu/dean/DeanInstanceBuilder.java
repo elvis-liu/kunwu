@@ -1,6 +1,6 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.dean;
 
-import com.thoughtworks.kunwu.reference.DeanReference;
+import com.thoughtworks.kunwu.container.DeanContainer;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -10,15 +10,15 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.thoughtworks.kunwu.DeanDefinition.getDeanDefaultName;
-import static com.thoughtworks.kunwu.reference.DeanReferenceType.ID;
+import static com.thoughtworks.kunwu.dean.DeanDefinition.getDeanDefaultName;
+import static com.thoughtworks.kunwu.dean.DeanReferenceType.ID;
 import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
 public class DeanInstanceBuilder {
     private final DeanContainer deanContainer;
     private final DeanDefinition deanDefinition;
 
-    DeanInstanceBuilder(DeanContainer deanContainer, DeanDefinition deanDefinition) {
+    public DeanInstanceBuilder(DeanContainer deanContainer, DeanDefinition deanDefinition) {
         this.deanContainer = deanContainer;
         this.deanDefinition = deanDefinition;
     }

@@ -1,18 +1,14 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.dean;
 
 import com.google.common.collect.ImmutableMap;
-import com.thoughtworks.kunwu.reference.DeanReference;
 
 import java.beans.Introspector;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.thoughtworks.kunwu.DeanScope.SINGLETON;
-import static com.thoughtworks.kunwu.DeanScope.scopeNameOf;
-
 public class DeanDefinition {
-    public static final DeanScope DEFAULT_SCOPE = SINGLETON;
+    public static final DeanScope DEFAULT_SCOPE = DeanScope.SINGLETON;
 
     private final Class<?> targetClass;
     private DeanReference[] constructorParamRefs;
@@ -20,19 +16,19 @@ public class DeanDefinition {
     private Map<String, DeanReference> propertyRefs = new HashMap<String, DeanReference>();
     private DeanScope scope;
 
-    DeanDefinition(Class<?> targetClass) {
+    public DeanDefinition(Class<?> targetClass) {
         this.targetClass = targetClass;
     }
 
-    Class<?> getTargetClass() {
+    public Class<?> getTargetClass() {
         return targetClass;
     }
 
-    DeanReference[] getConstructorParamRefs() {
+    public DeanReference[] getConstructorParamRefs() {
         return constructorParamRefs;
     }
 
-    String getDeanId() {
+    public String getDeanId() {
         if (deanId == null) {
             return getDeanDefaultName(targetClass);
         } else {
@@ -40,7 +36,7 @@ public class DeanDefinition {
         }
     }
 
-    Map<String, DeanReference> getPropertyRefs() {
+    public Map<String, DeanReference> getPropertyRefs() {
         return propertyRefs;
     }
 
@@ -60,7 +56,7 @@ public class DeanDefinition {
     }
 
     public DeanDefinition scope(String scopeName) {
-        return scope(scopeNameOf(scopeName));
+        return scope(DeanScope.scopeNameOf(scopeName));
     }
 
     public DeanDefinition scope(DeanScope scope) {

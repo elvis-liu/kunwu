@@ -1,4 +1,4 @@
-package com.thoughtworks.kunwu;
+package com.thoughtworks.kunwu.dean;
 
 public enum DeanScope {
     SINGLETON("singleton"),
