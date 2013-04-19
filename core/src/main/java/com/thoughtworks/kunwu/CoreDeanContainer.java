@@ -67,10 +67,11 @@ public class CoreDeanContainer extends DeanContainer {
 
     @Override
     public DeanDefinition getDeanDefinition(String id) {
-        if (!deanIdDefinitionMap.containsKey(id)) {
-            throw new IllegalArgumentException("No Dean of id: " + id);
+        DeanDefinition deanDefinition = deanIdDefinitionMap.get(id);
+        if (deanDefinition != null) {
+            return DeanDefinition.copyOf(deanDefinition);
+        } else {
+            return null;
         }
-
-        return deanIdDefinitionMap.get(id);
     }
 }

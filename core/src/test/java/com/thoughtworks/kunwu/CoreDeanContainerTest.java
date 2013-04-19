@@ -7,6 +7,7 @@ import static com.thoughtworks.kunwu.DeanScope.PROTOTYPE;
 import static com.thoughtworks.kunwu.reference.DeanReference.refByValue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class CoreDeanContainerTest {
@@ -89,9 +90,9 @@ public class CoreDeanContainerTest {
         assertThat(deanContainer.getDeanInstance("str1", String.class), is("original"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldThrowExceptionWhenGetDeanDefinitionWithNotExistedId() throws Exception {
-        deanContainer.getDeanDefinition("notExisted");
+        assertThat(deanContainer.getDeanDefinition("notExisted"), nullValue());
     }
 
     @Test
