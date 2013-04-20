@@ -22,22 +22,22 @@ public class CoreDeanContainerTest {
 
     @Test
     public void shouldCreatePOJOWithOnlyDefaultConstructor() throws Exception {
-        DeanDefinition deanDefinition = new DeanDefinition(Object.class);
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(Object.class);
         String id = deanContainer.addDeanDefinition(deanDefinition);
         assertThat(deanContainer.getDeanInstance(id), notNullValue());
     }
 
     @Test
     public void shouldBeAbleToGetDeanById() throws Exception {
-        DeanDefinition deanDefinition = new DeanDefinition(Integer.class).id("int1").constructBy(refByValue(3));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(Integer.class).id("int1").constructor(refByValue(3));
         deanContainer.addDeanDefinition(deanDefinition);
         assertThat(deanContainer.getDeanInstance("int1"), is((Object) 3));
     }
 
     @Test
     public void shouldGetDeanInstanceWithType() throws Exception {
-        DeanDefinition deanDefinition = new DeanDefinition(Integer.class)
-                .id("int1").constructBy(refByValue(3));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(Integer.class)
+                .id("int1").constructor(refByValue(3));
         deanContainer.addDeanDefinition(deanDefinition);
 
         assertThat(deanContainer.getDeanInstance("int1", Integer.class), is(3));
@@ -45,8 +45,8 @@ public class CoreDeanContainerTest {
 
     @Test(expected = ClassCastException.class)
     public void shouldThrowExceptionWhenGetDeanInstanceWithWrongType() throws Exception {
-        DeanDefinition deanDefinition = new DeanDefinition(Integer.class)
-                .id("int1").constructBy(refByValue(3));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(Integer.class)
+                .id("int1").constructor(refByValue(3));
         deanContainer.addDeanDefinition(deanDefinition);
 
         deanContainer.getDeanInstance("int1", String.class);
@@ -54,8 +54,8 @@ public class CoreDeanContainerTest {
 
     @Test
     public void shouldGetDeanInstanceWithAssignableType() throws Exception {
-        DeanDefinition deanDefinition = new DeanDefinition(Integer.class)
-                .id("int1").constructBy(refByValue(3));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(Integer.class)
+                .id("int1").constructor(refByValue(3));
         deanContainer.addDeanDefinition(deanDefinition);
 
         assertThat(deanContainer.getDeanInstance("int1", Number.class).intValue(), is(3));
@@ -63,11 +63,11 @@ public class CoreDeanContainerTest {
 
     @Test
     public void shouldAllowDeanWithSameTypeByIds() throws Exception {
-        DeanDefinition deanDefinition = new DeanDefinition(String.class)
-                .id("str1").constructBy(refByValue("test1"));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(String.class)
+                .id("str1").constructor(refByValue("test1"));
         deanContainer.addDeanDefinition(deanDefinition);
-        deanDefinition = new DeanDefinition(String.class)
-                .id("str2").constructBy(refByValue("test2"));
+        deanDefinition = DeanDefinition.defineDirectly(String.class)
+                .id("str2").constructor(refByValue("test2"));
         deanContainer.addDeanDefinition(deanDefinition);
 
         assertThat(deanContainer.getDeanInstance("str1", String.class), is("test1"));
@@ -76,17 +76,17 @@ public class CoreDeanContainerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotAllowAddDeansWithSameId() throws Exception {
-        deanContainer.addDeanDefinition(new DeanDefinition(Object.class).id("dean"));
-        deanContainer.addDeanDefinition(new DeanDefinition(Object.class).id("dean"));
+        deanContainer.addDeanDefinition(DeanDefinition.defineDirectly(Object.class).id("dean"));
+        deanContainer.addDeanDefinition(DeanDefinition.defineDirectly(Object.class).id("dean"));
     }
 
     @Test
     public void addedDeanDefinitionCannotBeAffected() throws Exception {
-        DeanDefinition deanDefinition = new DeanDefinition(String.class)
-                .id("str1").constructBy(refByValue("original"));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(String.class)
+                .id("str1").constructor(refByValue("original"));
         deanContainer.addDeanDefinition(deanDefinition);
 
-        deanDefinition.constructBy(refByValue("modified"));
+        deanDefinition.constructor(refByValue("modified"));
 
         assertThat(deanContainer.getDeanInstance("str1", String.class), is("original"));
     }
@@ -99,7 +99,7 @@ public class CoreDeanContainerTest {
     @Test
     public void shouldDefaultToSingletonScope() throws Exception {
         // given
-        DeanDefinition deanDefinition = new DeanDefinition(Object.class).id("dean");
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(Object.class).id("dean");
         deanContainer.addDeanDefinition(deanDefinition);
 
         // when
@@ -114,7 +114,7 @@ public class CoreDeanContainerTest {
     @Test
     public void shouldSupportPrototypeScope() throws Exception {
         // given
-        DeanDefinition deanDefinition = new DeanDefinition(Object.class).id("dean").scope(PROTOTYPE);
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(Object.class).id("dean").scope(PROTOTYPE);
         deanContainer.addDeanDefinition(deanDefinition);
 
         // when

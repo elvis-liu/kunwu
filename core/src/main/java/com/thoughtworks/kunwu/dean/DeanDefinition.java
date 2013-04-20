@@ -16,8 +16,12 @@ public class DeanDefinition {
     private Map<String, DeanReference> propertyRefs = new HashMap<String, DeanReference>();
     private DeanScope scope;
 
-    public DeanDefinition(Class<?> targetClass) {
+    private DeanDefinition(Class<?> targetClass) {
         this.targetClass = targetClass;
+    }
+
+    public static DeanDefinition defineDirectly(Class<?> targetClass) {
+        return new DeanDefinition(targetClass);
     }
 
     public Class<?> getTargetClass() {
@@ -40,12 +44,18 @@ public class DeanDefinition {
         return propertyRefs;
     }
 
-    public DeanDefinition constructBy(DeanReference... paramRefs) {
+    public DeanDefinition constructor(DeanReference... paramRefs) {
+        if (constructorParamRefs != null) {
+            throw new IllegalArgumentException("Already defined constructor");
+        }
         constructorParamRefs = paramRefs;
         return this;
     }
 
     public DeanDefinition id(String deanId) {
+        if (deanId != null) {
+            throw new IllegalArgumentException("Already defined id");
+        }
         this.deanId = deanId;
         return this;
     }
@@ -60,6 +70,9 @@ public class DeanDefinition {
     }
 
     public DeanDefinition scope(DeanScope scope) {
+        if (scope != null) {
+            throw new IllegalArgumentException("Already defined scope");
+        }
         this.scope = scope;
         return this;
     }
@@ -78,7 +91,7 @@ public class DeanDefinition {
     }
 
     public static DeanDefinition copyOf(DeanDefinition from) {
-        DeanDefinition copied = new DeanDefinition(from.targetClass);
+        DeanDefinition copied = defineDirectly(from.targetClass);
         if (from.constructorParamRefs != null) {
             copied.constructorParamRefs = Arrays.copyOf(from.constructorParamRefs, from.constructorParamRefs.length);
         }

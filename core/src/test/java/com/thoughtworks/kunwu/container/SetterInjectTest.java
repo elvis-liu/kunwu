@@ -20,7 +20,7 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectOnValueRef() throws Exception {
         // given
-        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("intValue", refByValue(3));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(BasicTestClass.class).property("intValue", refByValue(3));
         String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         // when
@@ -33,7 +33,7 @@ public class SetterInjectTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotInjectOnIllegalProperty() throws Exception {
         // given
-        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("notExisted", refByValue(3));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(BasicTestClass.class).property("notExisted", refByValue(3));
         String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         // when
@@ -43,10 +43,10 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectOnIdRef() throws Exception {
         // given
-        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10)).id("integerDean");
+        DeanDefinition integerDeanDefinition = DeanDefinition.defineDirectly(Integer.class).constructor(refByValue(10)).id("integerDean");
         deanContainer.addDeanDefinition(integerDeanDefinition);
 
-        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("intValue", refById("integerDean"));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(BasicTestClass.class).property("intValue", refById("integerDean"));
         String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         // when
@@ -59,10 +59,10 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectOnClassRef() throws Exception {
         // given
-        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10));
+        DeanDefinition integerDeanDefinition = DeanDefinition.defineDirectly(Integer.class).constructor(refByValue(10));
         deanContainer.addDeanDefinition(integerDeanDefinition);
 
-        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("intValue", refByClass(Integer.class));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(BasicTestClass.class).property("intValue", refByClass(Integer.class));
         String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         // when
@@ -75,10 +75,10 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectOnParentClassProperty() throws Exception {
         // given
-        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10));
+        DeanDefinition integerDeanDefinition = DeanDefinition.defineDirectly(Integer.class).constructor(refByValue(10));
         deanContainer.addDeanDefinition(integerDeanDefinition);
 
-        DeanDefinition deanDefinition = new DeanDefinition(ChildTestClass.class).property("intValue", refByClass(Integer.class));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(ChildTestClass.class).property("intValue", refByClass(Integer.class));
         String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         // when
@@ -91,10 +91,10 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectFromAssignableDean() throws Exception {
         // given
-        DeanDefinition integerDeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10));
+        DeanDefinition integerDeanDefinition = DeanDefinition.defineDirectly(Integer.class).constructor(refByValue(10));
         deanContainer.addDeanDefinition(integerDeanDefinition);
 
-        DeanDefinition deanDefinition = new DeanDefinition(ChildTestClass.class).property("numberValue", refByClass(Integer.class));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(ChildTestClass.class).property("numberValue", refByClass(Integer.class));
         String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         // when
@@ -108,13 +108,13 @@ public class SetterInjectTest {
     @Test
     public void shouldInjectMultiProperties() throws Exception {
         // given
-        DeanDefinition int1DeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(10)).id("int1");
+        DeanDefinition int1DeanDefinition = DeanDefinition.defineDirectly(Integer.class).constructor(refByValue(10)).id("int1");
         deanContainer.addDeanDefinition(int1DeanDefinition);
 
-        DeanDefinition int2DeanDefinition = new DeanDefinition(Integer.class).constructBy(refByValue(20)).id("int2");
+        DeanDefinition int2DeanDefinition = DeanDefinition.defineDirectly(Integer.class).constructor(refByValue(20)).id("int2");
         deanContainer.addDeanDefinition(int2DeanDefinition);
 
-        DeanDefinition deanDefinition = new DeanDefinition(BasicTestClass.class).property("numberValue", refById("int1")).property("intValue", refById("int2"));
+        DeanDefinition deanDefinition = DeanDefinition.defineDirectly(BasicTestClass.class).property("numberValue", refById("int1")).property("intValue", refById("int2"));
         String deanId = deanContainer.addDeanDefinition(deanDefinition);
 
         // when

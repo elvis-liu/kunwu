@@ -22,10 +22,10 @@ public class ChildDeanContainerTest {
     @Test
     public void shouldChildContainerSeeDeansWithinParent() throws Exception {
         // given
-        DeanDefinition deanA = new DeanDefinition(String.class).constructBy(refByValue("inParent")).id("deanA");
+        DeanDefinition deanA = DeanDefinition.defineDirectly(String.class).constructor(refByValue("inParent")).id("deanA");
         parentContainer.addDeanDefinition(deanA);
 
-        DeanDefinition deanB = new DeanDefinition(String.class).constructBy(refByValue("inChild")).id("deanB");
+        DeanDefinition deanB = DeanDefinition.defineDirectly(String.class).constructor(refByValue("inChild")).id("deanB");
         childContainer.addDeanDefinition(deanB);
 
         // then
@@ -37,10 +37,10 @@ public class ChildDeanContainerTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotSeeDeansWithinChildContainerFromParent() throws Exception {
         // given
-        DeanDefinition deanA = new DeanDefinition(String.class).constructBy(refByValue("inParent")).id("deanA");
+        DeanDefinition deanA = DeanDefinition.defineDirectly(String.class).constructor(refByValue("inParent")).id("deanA");
         parentContainer.addDeanDefinition(deanA);
 
-        DeanDefinition deanB = new DeanDefinition(String.class).constructBy(refByValue("inChild")).id("deanB");
+        DeanDefinition deanB = DeanDefinition.defineDirectly(String.class).constructor(refByValue("inChild")).id("deanB");
         childContainer.addDeanDefinition(deanB);
 
         // then
@@ -50,10 +50,10 @@ public class ChildDeanContainerTest {
     @Test
     public void shouldOverrideDeanWithSameIdInParent() throws Exception {
         // given
-        DeanDefinition deanA = new DeanDefinition(String.class).constructBy(refByValue("inParent")).id("dean");
+        DeanDefinition deanA = DeanDefinition.defineDirectly(String.class).constructor(refByValue("inParent")).id("dean");
         parentContainer.addDeanDefinition(deanA);
 
-        DeanDefinition deanB = new DeanDefinition(String.class).constructBy(refByValue("inChild")).id("dean");
+        DeanDefinition deanB = DeanDefinition.defineDirectly(String.class).constructor(refByValue("inChild")).id("dean");
         childContainer.addDeanDefinition(deanB);
 
         // then
