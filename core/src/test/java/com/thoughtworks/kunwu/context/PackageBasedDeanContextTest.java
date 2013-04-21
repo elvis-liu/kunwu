@@ -2,7 +2,8 @@ package com.thoughtworks.kunwu.context;
 
 import com.thoughtworks.kunwu.container.CoreDeanContainer;
 import com.thoughtworks.kunwu.container.DeanContainer;
-import com.thoughtworks.kunwu.context.config_inject.TestConfigWithConstructorInject;
+import com.thoughtworks.kunwu.context.config_inject.constructor.TestConfigWithConstructorInject;
+import com.thoughtworks.kunwu.context.config_inject.property.TestConfigWithPropertyInject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,15 +56,15 @@ public class PackageBasedDeanContextTest {
 
         // then
         assertThat(deanContext.getDeanDefinition(getDeanDefaultName(TestConfigWithConstructorInject.class)), nullValue());
+        assertThat(deanContext.getDeanDefinition(getDeanDefaultName(TestConfigWithPropertyInject.class)), nullValue());
     }
 
     @Test
     public void shouldAllowConstructorInjectIntoConfigClass() throws Exception {
         // given
         deanContainer.addDeanInstance("stringDean", "testString");
-        deanContainer.addDeanInstance("integerDean", 13);
         PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
-                newHashSet("com.thoughtworks.kunwu.context.config_inject"), deanContainer);
+                newHashSet("com.thoughtworks.kunwu.context.config_inject.constructor"), deanContainer);
 
         // when
         deanContext.scanAll();
@@ -75,10 +76,9 @@ public class PackageBasedDeanContextTest {
     @Test
     public void shouldAllowPropertyInjectIntoConfigClass() throws Exception {
         // given
-        deanContainer.addDeanInstance("stringDean", "testString");
         deanContainer.addDeanInstance("integerDean", 13);
         PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
-                newHashSet("com.thoughtworks.kunwu.context.config_inject"), deanContainer);
+                newHashSet("com.thoughtworks.kunwu.context.config_inject.property"), deanContainer);
 
         // when
         deanContext.scanAll();

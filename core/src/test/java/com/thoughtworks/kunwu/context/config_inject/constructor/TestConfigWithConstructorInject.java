@@ -1,4 +1,4 @@
-package com.thoughtworks.kunwu.context.config_inject;
+package com.thoughtworks.kunwu.context.config_inject.constructor;
 
 import com.thoughtworks.kunwu.annotation.DeanConfig;
 import com.thoughtworks.kunwu.annotation.DeanIdRef;
