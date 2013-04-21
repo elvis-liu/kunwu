@@ -125,4 +125,28 @@ public class CoreDeanContainerTest {
         assertThat(obj2, notNullValue());
         assertThat(obj1 == obj2, is(false));
     }
+
+    @Test
+    public void shouldAllowAddDeanInstanceDirectly() throws Exception {
+        deanContainer.addDeanInstance("dean", "test");
+
+        assertThat(deanContainer.getDeanInstance("dean", String.class), is("test"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotAllowAddDeanInstanceWithConflictDefinedId() throws Exception {
+        // given
+        DeanDefinition deanDefinition = DeanDefinition.defineDean(Object.class).id("dean").scope(PROTOTYPE);
+        deanContainer.addDeanDefinition(deanDefinition);
+
+        // when
+        deanContainer.addDeanInstance("dean", new Object());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotAllowAddDeanInstanceWithConflictAddedId() throws Exception {
+        // when
+        deanContainer.addDeanInstance("dean", new Object());
+        deanContainer.addDeanInstance("dean", new Object());
+    }
 }

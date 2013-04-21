@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
 import com.thoughtworks.kunwu.annotation.DeanConfig;
 import com.thoughtworks.kunwu.annotation.DefineDean;
+import com.thoughtworks.kunwu.annotation.ReturnDean;
 import com.thoughtworks.kunwu.container.CoreDeanContainer;
 import com.thoughtworks.kunwu.container.DeanContainer;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
@@ -53,23 +54,51 @@ public class PackageBasedDeanContext implements DeanContext {
 
         Method[] methods = configClass.getMethods();
         for (Method method : methods) {
-            DefineDean defineDeanAnnotation = method.getAnnotation(DefineDean.class);
-            if (defineDeanAnnotation != null) {
-                if (!DeanDefinition.class.isAssignableFrom(method.getReturnType())) {
-                    throw new IllegalStateException("@DefineDean method must return a DeanDefinition: " + method.toString());
-                }
+            processDefineDeanAnnotation(method, configClassObj);
+            processReturnDeanAnnotation(method, configClassObj);
+        }
+    }
 
-                DeanDefinition deanDefinition;
-                try {
-                    deanDefinition = DeanDefinition.class.cast(method.invoke(configClassObj));
-                } catch (IllegalAccessException e) {
-                    throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
-                } catch (InvocationTargetException e) {
-                    throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
-                }
-                deanDefinition.id(defineDeanAnnotation.value());
-                delegateContainer.addDeanDefinition(deanDefinition);
+    private void processReturnDeanAnnotation(Method method, Object configClassObj) {
+        ReturnDean returnDeanAnnotation = method.getAnnotation(ReturnDean.class);
+        if (returnDeanAnnotation != null) {
+            if (method.getReturnType().equals(void.class)) {
+                throw new IllegalStateException("@ReturnDean method must not return void: " + method.toString());
             }
+
+            Object deanObj;
+            try {
+                deanObj = method.invoke(configClassObj);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
+            } catch (InvocationTargetException e) {
+                throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
+            }
+            if (deanObj == null) {
+                throw new IllegalStateException("@ReturnDean method returned null: " + method.toString());
+            }
+
+            delegateContainer.addDeanInstance(returnDeanAnnotation.value(), deanObj);
+        }
+    }
+
+    private void processDefineDeanAnnotation(Method method, Object configClassObj) {
+        DefineDean defineDeanAnnotation = method.getAnnotation(DefineDean.class);
+        if (defineDeanAnnotation != null) {
+            if (!DeanDefinition.class.isAssignableFrom(method.getReturnType())) {
+                throw new IllegalStateException("@DefineDean method must return a DeanDefinition: " + method.toString());
+            }
+
+            DeanDefinition deanDefinition;
+            try {
+                deanDefinition = DeanDefinition.class.cast(method.invoke(configClassObj));
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
+            } catch (InvocationTargetException e) {
+                throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
+            }
+            deanDefinition.id(defineDeanAnnotation.value());
+            delegateContainer.addDeanDefinition(deanDefinition);
         }
     }
 

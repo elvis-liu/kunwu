@@ -28,6 +28,11 @@ public class ChildDeanContainer extends DeanContainer {
     }
 
     @Override
+    public void addDeanInstance(String id, Object deanInstance) {
+        delegateContainer.addDeanInstance(id, deanInstance);
+    }
+
+    @Override
     public DeanDefinition getDeanDefinition(String id) {
         DeanDefinition deanDefinition = delegateContainer.getDeanDefinition(id);
         if (deanDefinition == null) {

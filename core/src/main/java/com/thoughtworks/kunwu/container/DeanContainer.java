@@ -11,5 +11,5 @@ public abstract class DeanContainer implements DeanContext {
     }
 
     public abstract String addDeanDefinition(DeanDefinition deanDefinition);
-
+    public abstract void addDeanInstance(String id, Object deanInstance);
 }

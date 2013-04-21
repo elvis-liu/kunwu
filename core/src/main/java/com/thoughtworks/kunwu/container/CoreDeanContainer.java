@@ -6,6 +6,8 @@ import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.thoughtworks.kunwu.dean.DeanDefinition.defineDean;
+import static com.thoughtworks.kunwu.dean.DeanScope.SINGLETON;
 import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
 public class CoreDeanContainer extends DeanContainer {
@@ -62,6 +64,15 @@ public class CoreDeanContainer extends DeanContainer {
             deanIdDefinitionMap.put(id, DeanDefinition.copyOf(deanDefinition));
         }
         return id;
+    }
+
+    @Override
+    public void addDeanInstance(String id, Object deanInstance) {
+        DeanDefinition deanDefinition = defineDean(deanInstance.getClass()).id(id).scope(SINGLETON);
+        synchronized (mutex) {
+            addDeanDefinition(deanDefinition);
+            singletonDeanInstanceMap.put(id, deanInstance);
+        }
     }
 
     @Override

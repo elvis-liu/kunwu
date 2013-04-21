@@ -29,5 +29,7 @@ public class PackageBasedDeanContextTest {
         assertThat(deanContext.getDeanInstance("testDeanB", Integer.class), is(13));
         assertThat(deanContext.getDeanDefinition("testDeanC"), notNullValue());
         assertThat(deanContext.getDeanInstance("testDeanC", String.class), is("testC"));
+        assertThat(deanContext.getDeanDefinition("testDeanD"), notNullValue());
+        assertThat(deanContext.getDeanInstance("testDeanD", String.class), is("testD"));
     }
 }
