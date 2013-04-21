@@ -1,6 +1,6 @@
 package com.thoughtworks.kunwu.dean;
 
-import com.thoughtworks.kunwu.annotation.DeanId;
+import com.thoughtworks.kunwu.annotation.DeanIdRef;
 import com.thoughtworks.kunwu.annotation.DeanInject;
 import org.junit.Test;
 
@@ -92,14 +92,14 @@ public class AnnotationBasedDeanDefinitionTest {
     public static class IdRefConstructorInject {
         @SuppressWarnings("unused")
         @DeanInject()
-        public IdRefConstructorInject(@DeanId("stringDean") String stringValue) {
+        public IdRefConstructorInject(@DeanIdRef("stringDean") String stringValue) {
         }
     }
 
     public static class IdRefPropertyInject {
         @SuppressWarnings("unused")
         @DeanInject
-        @DeanId("intDean")
+        @DeanIdRef("intDean")
         private int intValue;
     }
 }

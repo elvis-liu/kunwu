@@ -1,12 +1,13 @@
 package com.thoughtworks.kunwu.container;
 
+import com.thoughtworks.kunwu.context.DeanContext;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
 
 public class ChildDeanContainer extends DeanContainer {
-    private final DeanContainer parentContainer;
+    private final DeanContext parentContainer;
     private final DeanContainer delegateContainer;
 
-    public ChildDeanContainer(DeanContainer parentContainer) {
+    public ChildDeanContainer(DeanContext parentContainer) {
         this.parentContainer = parentContainer;
         this.delegateContainer = new CoreDeanContainer();
     }

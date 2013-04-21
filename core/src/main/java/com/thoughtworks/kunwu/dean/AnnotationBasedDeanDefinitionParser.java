@@ -1,6 +1,6 @@
 package com.thoughtworks.kunwu.dean;
 
-import com.thoughtworks.kunwu.annotation.DeanId;
+import com.thoughtworks.kunwu.annotation.DeanIdRef;
 import com.thoughtworks.kunwu.annotation.DeanInject;
 
 import java.lang.annotation.Annotation;
@@ -30,7 +30,7 @@ class AnnotationBasedDeanDefinitionParser {
         for (Field field : declaredFields) {
             DeanInject annotation = field.getAnnotation(DeanInject.class);
             if (annotation != null) {
-                DeanId idAnnotation = field.getAnnotation(DeanId.class);
+                DeanIdRef idAnnotation = field.getAnnotation(DeanIdRef.class);
                 if (idAnnotation != null) {
                     deanDefinition.property(field.getName(), refById(idAnnotation.value()));
                 } else {
@@ -49,7 +49,7 @@ class AnnotationBasedDeanDefinitionParser {
                 Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
                 DeanReference[] paramRefTypes = new DeanReference[parameterTypes.length];
                 for (int i = 0; i < parameterTypes.length; i++) {
-                    DeanId idAnnotation = findDeanIdAnnotation(parameterAnnotations[i]);
+                    DeanIdRef idAnnotation = findDeanIdAnnotation(parameterAnnotations[i]);
                     if (idAnnotation != null) {
                         paramRefTypes[i] = refById(idAnnotation.value());
                     } else {
@@ -61,10 +61,10 @@ class AnnotationBasedDeanDefinitionParser {
         }
     }
 
-    private static DeanId findDeanIdAnnotation(Annotation[] annotations) {
+    private static DeanIdRef findDeanIdAnnotation(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
-            if (DeanId.class.isInstance(annotation)) {
-                return DeanId.class.cast(annotation);
+            if (DeanIdRef.class.isInstance(annotation)) {
+                return DeanIdRef.class.cast(annotation);
             }
         }
 

@@ -1,6 +1,6 @@
 package com.thoughtworks.kunwu.dean;
 
-import com.thoughtworks.kunwu.container.DeanContainer;
+import com.thoughtworks.kunwu.context.DeanContext;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -16,10 +16,10 @@ import static com.thoughtworks.kunwu.dean.DeanReferenceType.ID;
 import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
 public class DeanInstanceBuilder {
-    private final DeanContainer deanContainer;
+    private final DeanContext deanContext;
 
-    public DeanInstanceBuilder(DeanContainer deanContainer) {
-        this.deanContainer = deanContainer;
+    public DeanInstanceBuilder(DeanContext deanContext) {
+        this.deanContext = deanContext;
     }
 
     public Object buildInstance(DeanDefinition deanDefinition) {
@@ -114,7 +114,7 @@ public class DeanInstanceBuilder {
                 break;
             }
             case ID: {
-                Object dean = deanContainer.getDeanInstance(ref.getId());
+                Object dean = deanContext.getDeanInstance(ref.getId());
                 if (dean == null) {
                     throw new IllegalArgumentException("No Dean with Id: " + ref.getId());
                 }
@@ -163,7 +163,7 @@ public class DeanInstanceBuilder {
         Object refObj;
         switch (ref.getRefType()) {
             case CLASS: {
-                refObj = deanContainer.getDeanInstance(getDeanDefaultName(ref.getClassType()));
+                refObj = deanContext.getDeanInstance(getDeanDefaultName(ref.getClassType()));
                 if (refObj == null) {
                     throw new IllegalArgumentException("No Dean of type: " + ref.getClassType().getName());
                 }
@@ -174,7 +174,7 @@ public class DeanInstanceBuilder {
                 break;
             }
             case ID: {
-                refObj = deanContainer.getDeanInstance(ref.getId());
+                refObj = deanContext.getDeanInstance(ref.getId());
                 if (refObj == null) {
                     throw new IllegalArgumentException("No Dean with Id: " + ref.getId());
                 }
