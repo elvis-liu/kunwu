@@ -40,6 +40,7 @@ public class DeanInstanceBuilder {
         for (String propertyName : propertyRefs.keySet()) {
             DeanReference ref = propertyRefs.get(propertyName);
             try {
+                // TODO: support property without getter method
                 PropertyDescriptor propertyDescriptor = new PropertyDescriptor(propertyName, targetObj.getClass());
                 Method method = propertyDescriptor.getWriteMethod();
                 method.invoke(targetObj, getRefObject(ref));

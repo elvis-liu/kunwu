@@ -8,15 +8,19 @@ import com.thoughtworks.kunwu.annotation.ReturnDean;
 import com.thoughtworks.kunwu.container.CoreDeanContainer;
 import com.thoughtworks.kunwu.container.DeanContainer;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
+import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+import static com.thoughtworks.kunwu.dean.DeanDefinition.defineDeanByAnnotation;
+
 public class PackageBasedDeanContext implements DeanContext {
     private final Set<String> configPackages;
     private final DeanContainer delegateContainer;
+    private final DeanInstanceBuilder deanInstanceBuilder;
 
     public PackageBasedDeanContext(Set<String> configPackages) {
         this(configPackages, new CoreDeanContainer());
@@ -25,6 +29,7 @@ public class PackageBasedDeanContext implements DeanContext {
     public PackageBasedDeanContext(Set<String> configPackages, DeanContainer delegateContainer) {
         this.configPackages = configPackages;
         this.delegateContainer = delegateContainer;
+        this.deanInstanceBuilder = new DeanInstanceBuilder(delegateContainer);
     }
 
     public void scanAll() throws IOException {
@@ -42,15 +47,9 @@ public class PackageBasedDeanContext implements DeanContext {
     }
 
     private void scanClass(Class<?> configClass) {
-        // TODO: DeanConfig object may need Dean injection as well
-        Object configClassObj;
-        try {
-            configClassObj = configClass.newInstance();
-        } catch (InstantiationException e) {
-            throw new IllegalStateException("Failed to instantiate DeanConfig class", e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Failed to instantiate DeanConfig class", e);
-        }
+        DeanDefinition configClassDeanDefinition = defineDeanByAnnotation(configClass);
+        // TODO: what if the deans required by this config class are defined by another config class not scanned yet?
+        Object configClassObj = deanInstanceBuilder.buildInstance(configClassDeanDefinition);
 
         Method[] methods = configClass.getMethods();
         for (Method method : methods) {
@@ -68,6 +67,7 @@ public class PackageBasedDeanContext implements DeanContext {
 
             Object deanObj;
             try {
+                // TODO: allow method injection
                 deanObj = method.invoke(configClassObj);
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
@@ -91,6 +91,7 @@ public class PackageBasedDeanContext implements DeanContext {
 
             DeanDefinition deanDefinition;
             try {
+                // TODO: allow method injection
                 deanDefinition = DeanDefinition.class.cast(method.invoke(configClassObj));
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
