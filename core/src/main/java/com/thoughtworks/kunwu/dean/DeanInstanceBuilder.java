@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static com.thoughtworks.kunwu.dean.DeanDefinition.getDeanDefaultName;
@@ -16,25 +17,30 @@ import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
 public class DeanInstanceBuilder {
     private final DeanContainer deanContainer;
-    private final DeanDefinition deanDefinition;
 
-    public DeanInstanceBuilder(DeanContainer deanContainer, DeanDefinition deanDefinition) {
+    public DeanInstanceBuilder(DeanContainer deanContainer) {
         this.deanContainer = deanContainer;
-        this.deanDefinition = deanDefinition;
     }
 
-    public Object buildInstance() {
-        Object createdObj = createNewInstance(getConstructor(), deanDefinition.getConstructorParamRefs());
-        injectProperties(createdObj);
+    public Object buildInstance(DeanDefinition deanDefinition) {
+        Constructor<?> constructor = deanDefinition.getConstructor();
+        DeanReference[] constructorParamRefs = deanDefinition.getConstructorParamRefs();
+
+        if (constructor == null) {
+            constructor = guessConstructor(deanDefinition.getTargetClass(), constructorParamRefs);
+        }
+
+        Object createdObj = createNewInstance(constructor, constructorParamRefs);
+        injectProperties(createdObj, deanDefinition.getPropertyRefMap());
 
         return createdObj;
     }
 
-    private void injectProperties(Object targetObj) {
-        for (String propertyName : deanDefinition.getPropertyRefs().keySet()) {
-            DeanReference ref = deanDefinition.getPropertyRefs().get(propertyName);
+    private void injectProperties(Object targetObj, Map<String, DeanReference> propertyRefs) {
+        for (String propertyName : propertyRefs.keySet()) {
+            DeanReference ref = propertyRefs.get(propertyName);
             try {
-                PropertyDescriptor propertyDescriptor = new PropertyDescriptor(propertyName, deanDefinition.getTargetClass());
+                PropertyDescriptor propertyDescriptor = new PropertyDescriptor(propertyName, targetObj.getClass());
                 Method method = propertyDescriptor.getWriteMethod();
                 method.invoke(targetObj, getRefObject(ref));
             } catch (InvocationTargetException e) {
@@ -47,8 +53,8 @@ public class DeanInstanceBuilder {
         }
     }
 
-    private Constructor<?> getConstructor() {
-        Set<Constructor<?>> matchedConstructors = findMatchedConstructors(deanDefinition.getConstructorParamRefs());
+    private Constructor<?> guessConstructor(Class<?> targetClass, DeanReference[] constructorParamRefs) {
+        Set<Constructor<?>> matchedConstructors = findMatchedConstructors(targetClass, constructorParamRefs);
         if (matchedConstructors.size() > 1) {
             throw new IllegalArgumentException("Cannot determine which constructor to use!");
         }
@@ -60,8 +66,8 @@ public class DeanInstanceBuilder {
         return matchedConstructors.iterator().next();
     }
 
-    private Set<Constructor<?>> findMatchedConstructors(DeanReference[] paramRefs) {
-        Constructor<?>[] allConstructors = deanDefinition.getTargetClass().getConstructors();
+    private Set<Constructor<?>> findMatchedConstructors(Class<?> targetClass, DeanReference[] paramRefs) {
+        Constructor<?>[] allConstructors = targetClass.getConstructors();
         if (paramRefs == null) {
             paramRefs = new DeanReference[0];
         }

@@ -39,6 +39,31 @@ public class DeanReference {
         return id;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DeanReference that = (DeanReference) o;
+
+        if (classType != null ? !classType.equals(that.classType) : that.classType != null) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (refType != that.refType) return false;
+        //noinspection RedundantIfStatement
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = refType.hashCode();
+        result = 31 * result + (classType != null ? classType.hashCode() : 0);
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        return result;
+    }
+
     public static DeanReference refByClass(Class<?> classType) {
         return new DeanReference(classType);
     }

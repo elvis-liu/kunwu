@@ -12,6 +12,7 @@ public class CoreDeanContainer extends DeanContainer {
     private final Object mutex = new Object();
     private Map<String, DeanDefinition> deanIdDefinitionMap = new HashMap<String, DeanDefinition>();
     private Map<String, Object> singletonDeanInstanceMap = new HashMap<String, Object>();
+    private DeanInstanceBuilder deanInstanceBuilder = new DeanInstanceBuilder(this);
 
     @Override
     public Object getDeanInstance(String id) {
@@ -31,14 +32,14 @@ public class CoreDeanContainer extends DeanContainer {
                     String deanId = deanDefinition.getDeanId();
                     deanInstance = singletonDeanInstanceMap.get(deanId);
                     if (deanInstance == null) {
-                        deanInstance = buildInstance(deanDefinition);
+                        deanInstance = deanInstanceBuilder.buildInstance(deanDefinition);
                         singletonDeanInstanceMap.put(deanId, deanInstance);
                     }
                 }
                 break;
             }
             case PROTOTYPE: {
-                deanInstance = buildInstance(deanDefinition);
+                deanInstance = deanInstanceBuilder.buildInstance(deanDefinition);
                 break;
             }
             default: {
@@ -48,11 +49,6 @@ public class CoreDeanContainer extends DeanContainer {
             }
         }
         return deanInstance;
-    }
-
-    private Object buildInstance(DeanDefinition deanDefinition) {
-        DeanInstanceBuilder deanInstanceBuilder = new DeanInstanceBuilder(this, deanDefinition);
-        return deanInstanceBuilder.buildInstance();
     }
 
     @Override
