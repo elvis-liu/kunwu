@@ -1,14 +1,14 @@
 package com.thoughtworks.kunwu.container;
 
 import com.thoughtworks.kunwu.dean.DeanDefinition;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.thoughtworks.kunwu.dean.DeanScope.PROTOTYPE;
 import static com.thoughtworks.kunwu.dean.DeanReference.refByValue;
+import static com.thoughtworks.kunwu.dean.DeanScope.PROTOTYPE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class CoreDeanContainerTest {
@@ -90,9 +90,9 @@ public class CoreDeanContainerTest {
         assertThat(deanContainer.getDeanInstance("str1", String.class), is(""));
     }
 
-    @Test
+    @Test(expected = NoSuchDeanException.class)
     public void shouldThrowExceptionWhenGetDeanDefinitionWithNotExistedId() throws Exception {
-        assertThat(deanContainer.getDeanDefinition("notExisted"), nullValue());
+        deanContainer.getDeanDefinition("notExisted");
     }
 
     @Test

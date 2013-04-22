@@ -4,15 +4,16 @@ import com.thoughtworks.kunwu.container.CoreDeanContainer;
 import com.thoughtworks.kunwu.container.DeanContainer;
 import com.thoughtworks.kunwu.context.config_inject.constructor.TestConfigWithConstructorInject;
 import com.thoughtworks.kunwu.context.config_inject.property.TestConfigWithPropertyInject;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.thoughtworks.kunwu.dean.DeanDefinition.getDeanDefaultName;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class PackageBasedDeanContextTest {
 
@@ -55,8 +56,19 @@ public class PackageBasedDeanContextTest {
         deanContext.scanAll();
 
         // then
-        assertThat(deanContext.getDeanDefinition(getDeanDefaultName(TestConfigWithConstructorInject.class)), nullValue());
-        assertThat(deanContext.getDeanDefinition(getDeanDefaultName(TestConfigWithPropertyInject.class)), nullValue());
+        try {
+            deanContext.getDeanDefinition(getDeanDefaultName(TestConfigWithConstructorInject.class));
+            fail("Expected NoSuchDeanException");
+        } catch (NoSuchDeanException e) {
+            // pass
+        }
+
+        try {
+            deanContext.getDeanDefinition(getDeanDefaultName(TestConfigWithPropertyInject.class));
+            fail("Expected NoSuchDeanException");
+        } catch (NoSuchDeanException e) {
+            // pass
+        }
     }
 
     @Test
@@ -85,5 +97,31 @@ public class PackageBasedDeanContextTest {
 
         // then
         assertThat(deanContext.getDeanInstance("testDeanB", Integer.class), is(14));
+    }
+
+    @Test
+    public void shouldAllowConfigClassesToBeInterdependent() throws Exception {
+        // given
+        PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
+                newHashSet("com.thoughtworks.kunwu.context.interdependent"));
+
+        // when
+        deanContext.scanAll();
+
+        // then
+        assertThat(deanContext.getDeanInstance("intDean", Integer.class), is(13));
+        assertThat(deanContext.getDeanInstance("stringDeanB", String.class), is("stringB"));
+        assertThat(deanContext.getDeanInstance("stringDeanC", String.class), is("stringC"));
+        assertThat(deanContext.getDeanInstance("stringDeanD", String.class), is("stringD"));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionIfHasInterdependentConfigInCircle() throws Exception {
+        // given
+        PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
+                newHashSet("com.thoughtworks.kunwu.context.interdependent_in_circle"));
+
+        // when
+        deanContext.scanAll();
     }
 }

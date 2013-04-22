@@ -2,6 +2,7 @@ package com.thoughtworks.kunwu.container;
 
 import com.thoughtworks.kunwu.dean.DeanDefinition;
 import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class CoreDeanContainer extends DeanContainer {
     public Object getDeanInstance(String id) {
         DeanDefinition deanDefinition = deanIdDefinitionMap.get(id);
         if (deanDefinition == null) {
-            throw new IllegalArgumentException("No Dean defined for given id: " + id);
+            throw new NoSuchDeanException(id);
         }
 
         return getInstanceByDefinition(deanDefinition);
@@ -78,10 +79,9 @@ public class CoreDeanContainer extends DeanContainer {
     @Override
     public DeanDefinition getDeanDefinition(String id) {
         DeanDefinition deanDefinition = deanIdDefinitionMap.get(id);
-        if (deanDefinition != null) {
-            return DeanDefinition.copyOf(deanDefinition);
-        } else {
-            return null;
+        if (deanDefinition == null) {
+            throw new NoSuchDeanException(id);
         }
+        return DeanDefinition.copyOf(deanDefinition);
     }
 }

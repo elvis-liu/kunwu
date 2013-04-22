@@ -1,6 +1,7 @@
 package com.thoughtworks.kunwu.container;
 
 import com.thoughtworks.kunwu.dean.DeanDefinition;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class ChildDeanContainerTest {
         assertThat(childContainer.getDeanInstance("deanB", String.class), is("inChild"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NoSuchDeanException.class)
     public void shouldNotSeeDeansWithinChildContainerFromParent() throws Exception {
         // given
         DeanDefinition deanA = DeanDefinition.defineDean(String.class).constructorParams(refByValue("inParent")).id("deanA");

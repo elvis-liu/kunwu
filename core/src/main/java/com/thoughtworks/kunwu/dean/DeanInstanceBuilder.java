@@ -1,6 +1,7 @@
 package com.thoughtworks.kunwu.dean;
 
 import com.thoughtworks.kunwu.context.DeanContext;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -25,7 +26,7 @@ public class DeanInstanceBuilder {
         this.deanContext = deanContext;
     }
 
-    public Object buildInstance(DeanDefinition deanDefinition) {
+    public Object buildInstance(DeanDefinition deanDefinition) throws NoSuchDeanException {
         Constructor<?> constructor = deanDefinition.getConstructor();
         DeanReference[] constructorParamRefs = deanDefinition.getConstructorParamRefs();
 

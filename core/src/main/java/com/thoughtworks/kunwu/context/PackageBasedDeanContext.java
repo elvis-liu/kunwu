@@ -9,10 +9,13 @@ import com.thoughtworks.kunwu.container.CoreDeanContainer;
 import com.thoughtworks.kunwu.container.DeanContainer;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
 import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import static com.thoughtworks.kunwu.dean.DeanDefinition.defineDeanByAnnotation;
@@ -33,6 +36,31 @@ public class PackageBasedDeanContext implements DeanContext {
     }
 
     public void scanAll() throws IOException {
+        Set<Class<?>> classesToScan = findAllTheConfigClasses();
+        int lastRoundRemainingCount = -1;
+
+        while (!classesToScan.isEmpty()) {
+            Iterator<Class<?>> iterator = classesToScan.iterator();
+            while (iterator.hasNext()) {
+                Class<?> targetClass = iterator.next();
+                try {
+                    scanClass(targetClass);
+                    iterator.remove();
+                } catch (NoSuchDeanException e) {
+                    // ignore
+                }
+            }
+
+            int remainingClassesCount = classesToScan.size();
+            if (remainingClassesCount == lastRoundRemainingCount) {
+                throw new IllegalStateException("Failed to inject some config classes, possibly interdependent in circle?" + classesToScan.toString());
+            }
+            lastRoundRemainingCount = remainingClassesCount;
+        }
+    }
+
+    private Set<Class<?>> findAllTheConfigClasses() throws IOException {
+        Set<Class<?>> classesToScan = new HashSet<Class<?>>();
         ClassPath classPath = ClassPath.from(getClass().getClassLoader());
         for (String pkg : configPackages) {
             ImmutableSet<ClassPath.ClassInfo> topLevelClasses = classPath.getTopLevelClassesRecursive(pkg);
@@ -40,10 +68,11 @@ public class PackageBasedDeanContext implements DeanContext {
                 Class<?> targetClass = topLevelClass.load();
                 DeanConfig configAnnotation = targetClass.getAnnotation(DeanConfig.class);
                 if (configAnnotation != null) {
-                    scanClass(targetClass);
+                    classesToScan.add(targetClass);
                 }
             }
         }
+        return classesToScan;
     }
 
     private void scanClass(Class<?> configClass) {

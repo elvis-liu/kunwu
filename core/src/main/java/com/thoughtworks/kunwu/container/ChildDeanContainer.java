@@ -2,6 +2,7 @@ package com.thoughtworks.kunwu.container;
 
 import com.thoughtworks.kunwu.context.DeanContext;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 public class ChildDeanContainer extends DeanContainer {
     private final DeanContext parentContainer;
@@ -14,11 +15,10 @@ public class ChildDeanContainer extends DeanContainer {
 
     @Override
     public Object getDeanInstance(String id) {
-        DeanDefinition deanDefinition = delegateContainer.getDeanDefinition(id);
-        if (deanDefinition == null) {
-            return parentContainer.getDeanInstance(id);
-        } else {
+        try {
             return delegateContainer.getDeanInstance(id);
+        } catch (NoSuchDeanException e) {
+            return parentContainer.getDeanInstance(id);
         }
     }
 
@@ -34,10 +34,10 @@ public class ChildDeanContainer extends DeanContainer {
 
     @Override
     public DeanDefinition getDeanDefinition(String id) {
-        DeanDefinition deanDefinition = delegateContainer.getDeanDefinition(id);
-        if (deanDefinition == null) {
-            deanDefinition = parentContainer.getDeanDefinition(id);
+        try {
+            return delegateContainer.getDeanDefinition(id);
+        } catch (NoSuchDeanException e) {
+            return parentContainer.getDeanDefinition(id);
         }
-        return deanDefinition;
     }
 }

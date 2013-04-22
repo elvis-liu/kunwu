@@ -1,6 +1,7 @@
 package com.thoughtworks.kunwu.container;
 
 import com.thoughtworks.kunwu.dean.DeanDefinition;
+import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -122,7 +123,7 @@ public class ConstructorInjectTest {
         deanContainer.getDeanInstance(testDeanId, BasicTestClass.class);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NoSuchDeanException.class)
     public void shouldThrowExceptionIfNoMatchedDeanForConstructor() throws Exception {
         DeanDefinition testDeanDefinition = DeanDefinition.defineDean(BasicTestClass.class)
                 .constructorParams(refByClass(Integer.class));
@@ -145,7 +146,7 @@ public class ConstructorInjectTest {
         assertThat(testObj.getStringValue(), is("defaultConstructor"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NoSuchDeanException.class)
     public void shouldNotInjectWhenRefByClassEvenHaveAssignableDeans() throws Exception {
         // given
         DeanDefinition intDeanDefinition = DeanDefinition.defineDean(Integer.class).constructorParams(refByValue(3));
@@ -185,7 +186,7 @@ public class ConstructorInjectTest {
         assertThat(testObj.isBooleanValue(), is(true));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NoSuchDeanException.class)
     public void shouldNotInjectWithInvalidIdRef() throws Exception {
         DeanDefinition testDeanDefinition = DeanDefinition.defineDean(BasicTestClass.class)
                 .constructorParams(refById("notExisted"));
