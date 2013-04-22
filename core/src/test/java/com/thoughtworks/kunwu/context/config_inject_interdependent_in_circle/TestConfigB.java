@@ -1,4 +1,4 @@
-package com.thoughtworks.kunwu.context.interdependent_in_circle;
+package com.thoughtworks.kunwu.context.config_inject_interdependent_in_circle;
 
 import com.thoughtworks.kunwu.annotation.DeanConfig;
 import com.thoughtworks.kunwu.annotation.DeanIdRef;

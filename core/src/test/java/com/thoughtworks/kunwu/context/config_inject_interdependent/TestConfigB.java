@@ -1,4 +1,4 @@
-package com.thoughtworks.kunwu.context.interdependent;
+package com.thoughtworks.kunwu.context.config_inject_interdependent;
 
 import com.thoughtworks.kunwu.annotation.DeanConfig;
 import com.thoughtworks.kunwu.annotation.DeanIdRef;

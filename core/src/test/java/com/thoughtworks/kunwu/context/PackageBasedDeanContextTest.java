@@ -103,7 +103,7 @@ public class PackageBasedDeanContextTest {
     public void shouldAllowConfigClassesToBeInterdependent() throws Exception {
         // given
         PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
-                newHashSet("com.thoughtworks.kunwu.context.interdependent"));
+                newHashSet("com.thoughtworks.kunwu.context.config_inject_interdependent"));
 
         // when
         deanContext.scanAll();
@@ -119,7 +119,7 @@ public class PackageBasedDeanContextTest {
     public void shouldThrowExceptionIfHasInterdependentConfigInCircle() throws Exception {
         // given
         PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
-                newHashSet("com.thoughtworks.kunwu.context.interdependent_in_circle"));
+                newHashSet("com.thoughtworks.kunwu.context.config_inject_interdependent_in_circle"));
 
         // when
         deanContext.scanAll();
