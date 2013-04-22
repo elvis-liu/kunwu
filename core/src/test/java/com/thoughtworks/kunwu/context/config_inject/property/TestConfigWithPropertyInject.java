@@ -20,10 +20,6 @@ public class TestConfigWithPropertyInject {
         this.intValue = intValue;
     }
 
-    public int getIntValue() {
-        return intValue;
-    }
-
     @DefineDean("testDeanB")
     public DeanDefinition defineTestDeanB() {
         return defineDean(Integer.class).constructorParams(refByValue(intValue + 1));

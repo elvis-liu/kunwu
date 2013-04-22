@@ -2,11 +2,14 @@ package com.thoughtworks.kunwu.dean;
 
 import com.thoughtworks.kunwu.context.DeanContext;
 
+import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -37,20 +40,34 @@ public class DeanInstanceBuilder {
     }
 
     private void injectProperties(Object targetObj, Map<String, DeanReference> propertyRefs) {
-        for (String propertyName : propertyRefs.keySet()) {
-            DeanReference ref = propertyRefs.get(propertyName);
-            try {
-                // TODO: support property without getter method
-                PropertyDescriptor propertyDescriptor = new PropertyDescriptor(propertyName, targetObj.getClass());
-                Method method = propertyDescriptor.getWriteMethod();
-                method.invoke(targetObj, getRefObject(ref));
-            } catch (InvocationTargetException e) {
-                throw new IllegalStateException(e);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException(e);
-            } catch (IntrospectionException e) {
-                throw new IllegalArgumentException("Cannot inject property: " + propertyName, e);
+        try {
+            BeanInfo beanInfo = Introspector.getBeanInfo(targetObj.getClass(), Introspector.USE_ALL_BEANINFO);
+            PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+            Map<String, PropertyDescriptor> propertyNameDescriptorMap = new HashMap<String, PropertyDescriptor>(propertyDescriptors.length);
+            for (PropertyDescriptor descriptor : propertyDescriptors) {
+                propertyNameDescriptorMap.put(descriptor.getName(), descriptor);
             }
+
+            for (String propertyName : propertyRefs.keySet()) {
+                DeanReference ref = propertyRefs.get(propertyName);
+                PropertyDescriptor descriptor = propertyNameDescriptorMap.get(propertyName);
+                if (descriptor == null) {
+                    throw new IllegalArgumentException("Failed to find property: " + propertyName + " within: " + targetObj.getClass().getName());
+                }
+                Method writeMethod = descriptor.getWriteMethod();
+                if (writeMethod == null) {
+                    throw new IllegalArgumentException("No setter method for property: " + propertyName + " within: " + targetObj.getClass().getName());
+                }
+                try {
+                    writeMethod.invoke(targetObj, getRefObject(ref));
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(e);
+                } catch (InvocationTargetException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        } catch (IntrospectionException e) {
+            throw new IllegalArgumentException("Failed to inject property for class: " + targetObj.getClass().getName());
         }
     }
 
