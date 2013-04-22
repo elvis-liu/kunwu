@@ -14,9 +14,7 @@ import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import static com.thoughtworks.kunwu.dean.DeanDefinition.defineDeanByAnnotation;
 import static com.thoughtworks.kunwu.dean.DeanReferenceReflectionUtil.getMethodParamReferences;
@@ -40,25 +38,62 @@ public class PackageBasedDeanContext implements DeanContext {
 
     public void scanAll() throws IOException {
         Set<Class<?>> classesToScan = findAllTheConfigClasses();
-        int lastRoundRemainingCount = -1;
+        Map<Method, Object> failedConfigMethods = new HashMap<Method, Object>();
+        int lastRoundRemainingClassCount = -1;
+        int lastRoundRemainingMethodCount = -1;
 
-        while (!classesToScan.isEmpty()) {
-            Iterator<Class<?>> iterator = classesToScan.iterator();
-            while (iterator.hasNext()) {
-                Class<?> targetClass = iterator.next();
-                try {
-                    scanClass(targetClass);
-                    iterator.remove();
-                } catch (NoSuchDeanException e) {
-                    // ignore
+        while (!classesToScan.isEmpty() || !failedConfigMethods.isEmpty()) {
+            Iterator<Class<?>> classIterator = classesToScan.iterator();
+            while (classIterator.hasNext()) {
+                Class<?> targetClass = classIterator.next();
+                Object configClassObj = buildConfigInstance(targetClass);
+                if (configClassObj != null) {
+                    classIterator.remove();
+                    Method[] methods = targetClass.getMethods();
+                    for (Method method : methods) {
+                        if (!processConfigMethod(method, configClassObj)) {
+                            failedConfigMethods.put(method, configClassObj);
+                        }
+                    }
+                }
+            }
+
+            Iterator<Method> methodIterator = failedConfigMethods.keySet().iterator();
+            while (methodIterator.hasNext()) {
+                Method method = methodIterator.next();
+                Object configObj = failedConfigMethods.get(method);
+                if (processConfigMethod(method, configObj)) {
+                    methodIterator.remove();
                 }
             }
 
             int remainingClassesCount = classesToScan.size();
-            if (remainingClassesCount == lastRoundRemainingCount) {
-                throw new IllegalStateException("Failed to inject some config classes, possibly interdependent in circle?" + classesToScan.toString());
+            int remainingMethodCount = failedConfigMethods.size();
+            if (remainingClassesCount == lastRoundRemainingClassCount && remainingMethodCount == lastRoundRemainingMethodCount) {
+                throw new IllegalStateException("Failed to inject some config classes, possibly interdependent in circle?\n\nClasses:\n"
+                        + classesToScan.toString() + "\n\nMethods:\n" + failedConfigMethods.toString());
             }
-            lastRoundRemainingCount = remainingClassesCount;
+            lastRoundRemainingClassCount = remainingClassesCount;
+            lastRoundRemainingMethodCount = remainingMethodCount;
+        }
+    }
+
+    private boolean processConfigMethod(Method method, Object configObj) {
+        try {
+            processDefineDeanAnnotation(method, configObj);
+            processReturnDeanAnnotation(method, configObj);
+            return true;
+        } catch (NoSuchDeanException e) {
+            return false;
+        }
+    }
+
+    private Object buildConfigInstance(Class<?> targetConfigClass) {
+        try {
+            DeanDefinition configClassDeanDefinition = defineDeanByAnnotation(targetConfigClass);
+            return instanceBuilder.buildInstance(configClassDeanDefinition);
+        } catch (NoSuchDeanException e) {
+            return null;
         }
     }
 
@@ -76,17 +111,6 @@ public class PackageBasedDeanContext implements DeanContext {
             }
         }
         return classesToScan;
-    }
-
-    private void scanClass(Class<?> configClass) {
-        DeanDefinition configClassDeanDefinition = defineDeanByAnnotation(configClass);
-        Object configClassObj = instanceBuilder.buildInstance(configClassDeanDefinition);
-
-        Method[] methods = configClass.getMethods();
-        for (Method method : methods) {
-            processDefineDeanAnnotation(method, configClassObj);
-            processReturnDeanAnnotation(method, configClassObj);
-        }
     }
 
     private void processReturnDeanAnnotation(Method method, Object configClassObj) {

@@ -139,4 +139,32 @@ public class PackageBasedDeanContextTest {
         assertThat(deanContext.getDeanInstance("stringDeanA", String.class), is("base_stringA"));
         assertThat(deanContext.getDeanInstance("stringDeanB", String.class), is("base_stringB"));
     }
+
+    @Test
+    public void shouldAllowInjectDeanIntoConfigMethodWithInterdependency() throws Exception {
+        // given
+        PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
+                newHashSet("com.thoughtworks.kunwu.context.config_method_inject_interdependent"));
+
+        // when
+        deanContext.scanAll();
+
+        // then
+        assertThat(deanContext.getDeanInstance("stringDeanA", String.class), is("stringA"));
+        assertThat(deanContext.getDeanInstance("intDeanA", Integer.class), is(14));
+        assertThat(deanContext.getDeanInstance("stringDeanB", String.class), is("stringB_stringA_stringC_stringA_stringD"));
+        assertThat(deanContext.getDeanInstance("intDeanB", Integer.class), is(1));
+        assertThat(deanContext.getDeanInstance("stringDeanC", String.class), is("stringA_stringC"));
+        assertThat(deanContext.getDeanInstance("stringDeanD", String.class), is("stringA_stringD"));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionIfHasInterdependentConfigMethodInCircle() throws Exception {
+        // given
+        PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
+                newHashSet("com.thoughtworks.kunwu.context.config_method_inject_interdependent_in_circle"));
+
+        // when
+        deanContext.scanAll();
+    }
 }
