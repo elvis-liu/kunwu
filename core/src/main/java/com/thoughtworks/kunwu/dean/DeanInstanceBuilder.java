@@ -15,15 +15,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.thoughtworks.kunwu.dean.DeanDefinition.getDeanDefaultName;
 import static com.thoughtworks.kunwu.dean.DeanReferenceType.ID;
-import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
 public class DeanInstanceBuilder {
     private final DeanContext deanContext;
+    private final DeanReferenceResolver referenceResolver;
 
     public DeanInstanceBuilder(DeanContext deanContext) {
         this.deanContext = deanContext;
+        this.referenceResolver = new DeanReferenceResolver(deanContext);
     }
 
     public Object buildInstance(DeanDefinition deanDefinition) throws NoSuchDeanException {
@@ -60,7 +60,7 @@ public class DeanInstanceBuilder {
                     throw new IllegalArgumentException("No setter method for property: " + propertyName + " within: " + targetObj.getClass().getName());
                 }
                 try {
-                    writeMethod.invoke(targetObj, getRefObject(ref));
+                    writeMethod.invoke(targetObj, referenceResolver.getRefObject(ref));
                 } catch (IllegalAccessException e) {
                     throw new IllegalArgumentException(e);
                 } catch (InvocationTargetException e) {
@@ -108,7 +108,7 @@ public class DeanInstanceBuilder {
         }
 
         for (int i = 0; i < paramRefs.length; i++) {
-            Class<?> refClassType = getRefClassType(paramRefs[i]);
+            Class<?> refClassType = referenceResolver.getRefClassType(paramRefs[i]);
             if (paramRefs[i].getRefType() == ID) {
                 if (!paramTypes[i].isAssignableFrom(refClassType)) {
                     return false;
@@ -123,35 +123,8 @@ public class DeanInstanceBuilder {
         return true;
     }
 
-    private Class<?> getRefClassType(DeanReference ref) {
-        Class<?> classType;
-
-        switch (ref.getRefType()) {
-            case CLASS:
-            case VALUE: {
-                classType = ref.getClassType();
-                break;
-            }
-            case ID: {
-                Object dean = deanContext.getDeanInstance(ref.getId());
-                if (dean == null) {
-                    throw new IllegalArgumentException("No Dean with Id: " + ref.getId());
-                }
-                classType = dean.getClass();
-                break;
-            }
-            default: {
-                fail("Unknown ref type: " + ref.getRefType());
-                classType = null;
-                break;
-            }
-        }
-
-        return classType;
-    }
-
     private <T> T createNewInstance(Constructor<T> constructor, DeanReference[] paramRefs) {
-        Object[] parameters = getReferencedDeans(paramRefs);
+        Object[] parameters = referenceResolver.getAllRefObjects(paramRefs);
 
         try {
             return constructor.newInstance(parameters);
@@ -166,46 +139,4 @@ public class DeanInstanceBuilder {
         return null;
     }
 
-    private Object[] getReferencedDeans(DeanReference[] paramRefs) {
-        if (paramRefs == null || paramRefs.length == 0) {
-            return new Object[0];
-        }
-
-        Object[] parameters = new Object[paramRefs.length];
-        for (int i = 0; i < paramRefs.length; i++) {
-            parameters[i] = getRefObject(paramRefs[i]);
-        }
-        return parameters;
-    }
-
-    private Object getRefObject(DeanReference ref) {
-        Object refObj;
-        switch (ref.getRefType()) {
-            case CLASS: {
-                refObj = deanContext.getDeanInstance(getDeanDefaultName(ref.getClassType()));
-                if (refObj == null) {
-                    throw new IllegalArgumentException("No Dean of type: " + ref.getClassType().getName());
-                }
-                break;
-            }
-            case VALUE: {
-                refObj = ref.getValue();
-                break;
-            }
-            case ID: {
-                refObj = deanContext.getDeanInstance(ref.getId());
-                if (refObj == null) {
-                    throw new IllegalArgumentException("No Dean with Id: " + ref.getId());
-                }
-                break;
-            }
-            default: {
-                fail("Unknown ref type: " + ref.getRefType());
-                refObj = null;
-                break;
-            }
-        }
-
-        return refObj;
-    }
 }

@@ -1,14 +1,12 @@
 package com.thoughtworks.kunwu.dean;
 
-import com.thoughtworks.kunwu.annotation.DeanIdRef;
 import com.thoughtworks.kunwu.annotation.DeanInject;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-import static com.thoughtworks.kunwu.dean.DeanReference.refByClass;
-import static com.thoughtworks.kunwu.dean.DeanReference.refById;
+import static com.thoughtworks.kunwu.dean.DeanReferenceReflectionUtil.getConstructorParamReferences;
+import static com.thoughtworks.kunwu.dean.DeanReferenceReflectionUtil.getFieldReference;
 
 class AnnotationBasedDeanDefinitionParser {
     private final Class<?> targetClass;
@@ -30,12 +28,7 @@ class AnnotationBasedDeanDefinitionParser {
         for (Field field : declaredFields) {
             DeanInject annotation = field.getAnnotation(DeanInject.class);
             if (annotation != null) {
-                DeanIdRef idAnnotation = field.getAnnotation(DeanIdRef.class);
-                if (idAnnotation != null) {
-                    deanDefinition.property(field.getName(), refById(idAnnotation.value()));
-                } else {
-                    deanDefinition.property(field.getName(), refByClass(field.getType()));
-                }
+                deanDefinition.property(field.getName(), getFieldReference(field));
             }
         }
     }
@@ -45,29 +38,8 @@ class AnnotationBasedDeanDefinitionParser {
         for (Constructor<?> constructor : constructors) {
             DeanInject annotation = constructor.getAnnotation(DeanInject.class);
             if (annotation != null) {
-                Class<?>[] parameterTypes = constructor.getParameterTypes();
-                Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
-                DeanReference[] paramRefTypes = new DeanReference[parameterTypes.length];
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    DeanIdRef idAnnotation = findDeanIdAnnotation(parameterAnnotations[i]);
-                    if (idAnnotation != null) {
-                        paramRefTypes[i] = refById(idAnnotation.value());
-                    } else {
-                        paramRefTypes[i] = refByClass(parameterTypes[i]);
-                    }
-                }
-                deanDefinition.constructor(constructor, paramRefTypes);
+                deanDefinition.constructor(constructor, getConstructorParamReferences(constructor));
             }
         }
-    }
-
-    private static DeanIdRef findDeanIdAnnotation(Annotation[] annotations) {
-        for (Annotation annotation : annotations) {
-            if (DeanIdRef.class.isInstance(annotation)) {
-                return DeanIdRef.class.cast(annotation);
-            }
-        }
-
-        return null;
     }
 }

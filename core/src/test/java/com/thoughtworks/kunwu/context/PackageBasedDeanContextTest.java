@@ -124,4 +124,19 @@ public class PackageBasedDeanContextTest {
         // when
         deanContext.scanAll();
     }
+
+    @Test
+    public void shouldAllowInjectDeanIntoConfigMethod() throws Exception {
+        // given
+        deanContainer.addDeanInstance("baseStringDean", "base");
+        PackageBasedDeanContext deanContext = new PackageBasedDeanContext(
+                newHashSet("com.thoughtworks.kunwu.context.config_method_inject"), deanContainer);
+
+        // when
+        deanContext.scanAll();
+
+        // then
+        assertThat(deanContext.getDeanInstance("stringDeanA", String.class), is("base_stringA"));
+        assertThat(deanContext.getDeanInstance("stringDeanB", String.class), is("base_stringB"));
+    }
 }

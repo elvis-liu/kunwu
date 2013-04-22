@@ -9,6 +9,8 @@ import com.thoughtworks.kunwu.container.CoreDeanContainer;
 import com.thoughtworks.kunwu.container.DeanContainer;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
 import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
+import com.thoughtworks.kunwu.dean.DeanReference;
+import com.thoughtworks.kunwu.dean.DeanReferenceResolver;
 import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 import java.io.IOException;
@@ -19,11 +21,13 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static com.thoughtworks.kunwu.dean.DeanDefinition.defineDeanByAnnotation;
+import static com.thoughtworks.kunwu.dean.DeanReferenceReflectionUtil.getMethodParamReferences;
 
 public class PackageBasedDeanContext implements DeanContext {
     private final Set<String> configPackages;
     private final DeanContainer delegateContainer;
-    private final DeanInstanceBuilder deanInstanceBuilder;
+    private final DeanInstanceBuilder instanceBuilder;
+    private final DeanReferenceResolver referenceResolver;
 
     public PackageBasedDeanContext(Set<String> configPackages) {
         this(configPackages, new CoreDeanContainer());
@@ -32,7 +36,8 @@ public class PackageBasedDeanContext implements DeanContext {
     public PackageBasedDeanContext(Set<String> configPackages, DeanContainer delegateContainer) {
         this.configPackages = configPackages;
         this.delegateContainer = delegateContainer;
-        this.deanInstanceBuilder = new DeanInstanceBuilder(delegateContainer);
+        this.instanceBuilder = new DeanInstanceBuilder(delegateContainer);
+        this.referenceResolver = new DeanReferenceResolver(delegateContainer);
     }
 
     public void scanAll() throws IOException {
@@ -77,8 +82,7 @@ public class PackageBasedDeanContext implements DeanContext {
 
     private void scanClass(Class<?> configClass) {
         DeanDefinition configClassDeanDefinition = defineDeanByAnnotation(configClass);
-        // TODO: what if the deans required by this config class are defined by another config class not scanned yet?
-        Object configClassObj = deanInstanceBuilder.buildInstance(configClassDeanDefinition);
+        Object configClassObj = instanceBuilder.buildInstance(configClassDeanDefinition);
 
         Method[] methods = configClass.getMethods();
         for (Method method : methods) {
@@ -94,10 +98,11 @@ public class PackageBasedDeanContext implements DeanContext {
                 throw new IllegalStateException("@ReturnDean method must not return void: " + method.toString());
             }
 
+            DeanReference[] paramReferences = getMethodParamReferences(method);
+            Object[] paramObjects = referenceResolver.getAllRefObjects(paramReferences);
             Object deanObj;
             try {
-                // TODO: allow method injection
-                deanObj = method.invoke(configClassObj);
+                deanObj = method.invoke(configClassObj, paramObjects);
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
             } catch (InvocationTargetException e) {
@@ -118,10 +123,11 @@ public class PackageBasedDeanContext implements DeanContext {
                 throw new IllegalStateException("@DefineDean method must return a DeanDefinition: " + method.toString());
             }
 
+            DeanReference[] paramReferences = getMethodParamReferences(method);
+            Object[] paramObjects = referenceResolver.getAllRefObjects(paramReferences);
             DeanDefinition deanDefinition;
             try {
-                // TODO: allow method injection
-                deanDefinition = DeanDefinition.class.cast(method.invoke(configClassObj));
+                deanDefinition = DeanDefinition.class.cast(method.invoke(configClassObj, paramObjects));
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException("Failed to call config method: " + method.toString(), e);
             } catch (InvocationTargetException e) {
