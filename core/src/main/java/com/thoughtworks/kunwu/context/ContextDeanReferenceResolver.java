@@ -1,14 +1,15 @@
-package com.thoughtworks.kunwu.dean;
+package com.thoughtworks.kunwu.context;
 
 import com.thoughtworks.kunwu.context.DeanContext;
+import com.thoughtworks.kunwu.dean.DeanReference;
 
 import static com.thoughtworks.kunwu.dean.DeanDefinition.getDeanDefaultName;
 import static com.thoughtworks.kunwu.utils.RuntimeAssert.fail;
 
-public class DeanReferenceResolver {
+public class ContextDeanReferenceResolver {
     private final DeanContext deanContext;
 
-    public DeanReferenceResolver(DeanContext deanContext) {
+    public ContextDeanReferenceResolver(DeanContext deanContext) {
         this.deanContext = deanContext;
     }
 

@@ -1,7 +1,7 @@
 package com.thoughtworks.kunwu.container;
 
+import com.thoughtworks.kunwu.context.ContextDeanInstanceBuilder;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
-import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
 import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 import java.util.HashMap;
@@ -15,7 +15,7 @@ public class CoreDeanContainer extends DeanContainer {
     private final Object mutex = new Object();
     private Map<String, DeanDefinition> deanIdDefinitionMap = new HashMap<String, DeanDefinition>();
     private Map<String, Object> singletonDeanInstanceMap = new HashMap<String, Object>();
-    private DeanInstanceBuilder deanInstanceBuilder = new DeanInstanceBuilder(this);
+    private ContextDeanInstanceBuilder deanInstanceBuilder = new ContextDeanInstanceBuilder(this);
 
     @Override
     public Object getDeanInstance(String id) {

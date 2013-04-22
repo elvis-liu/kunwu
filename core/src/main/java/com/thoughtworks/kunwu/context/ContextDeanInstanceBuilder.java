@@ -1,6 +1,7 @@
-package com.thoughtworks.kunwu.dean;
+package com.thoughtworks.kunwu.context;
 
-import com.thoughtworks.kunwu.context.DeanContext;
+import com.thoughtworks.kunwu.dean.DeanDefinition;
+import com.thoughtworks.kunwu.dean.DeanReference;
 import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 import java.beans.BeanInfo;
@@ -17,13 +18,11 @@ import java.util.Set;
 
 import static com.thoughtworks.kunwu.dean.DeanReferenceType.ID;
 
-public class DeanInstanceBuilder {
-    private final DeanContext deanContext;
-    private final DeanReferenceResolver referenceResolver;
+public class ContextDeanInstanceBuilder {
+    private final ContextDeanReferenceResolver referenceResolver;
 
-    public DeanInstanceBuilder(DeanContext deanContext) {
-        this.deanContext = deanContext;
-        this.referenceResolver = new DeanReferenceResolver(deanContext);
+    public ContextDeanInstanceBuilder(DeanContext deanContext) {
+        this.referenceResolver = new ContextDeanReferenceResolver(deanContext);
     }
 
     public Object buildInstance(DeanDefinition deanDefinition) throws NoSuchDeanException {

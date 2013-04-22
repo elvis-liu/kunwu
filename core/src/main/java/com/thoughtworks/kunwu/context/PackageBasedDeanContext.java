@@ -8,9 +8,7 @@ import com.thoughtworks.kunwu.annotation.ReturnDean;
 import com.thoughtworks.kunwu.container.CoreDeanContainer;
 import com.thoughtworks.kunwu.container.DeanContainer;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
-import com.thoughtworks.kunwu.dean.DeanInstanceBuilder;
 import com.thoughtworks.kunwu.dean.DeanReference;
-import com.thoughtworks.kunwu.dean.DeanReferenceResolver;
 import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
 import java.io.IOException;
@@ -26,8 +24,8 @@ import static com.thoughtworks.kunwu.dean.DeanReferenceReflectionUtil.getMethodP
 public class PackageBasedDeanContext implements DeanContext {
     private final Set<String> configPackages;
     private final DeanContainer delegateContainer;
-    private final DeanInstanceBuilder instanceBuilder;
-    private final DeanReferenceResolver referenceResolver;
+    private final ContextDeanInstanceBuilder instanceBuilder;
+    private final ContextDeanReferenceResolver referenceResolver;
 
     public PackageBasedDeanContext(Set<String> configPackages) {
         this(configPackages, new CoreDeanContainer());
@@ -36,8 +34,8 @@ public class PackageBasedDeanContext implements DeanContext {
     public PackageBasedDeanContext(Set<String> configPackages, DeanContainer delegateContainer) {
         this.configPackages = configPackages;
         this.delegateContainer = delegateContainer;
-        this.instanceBuilder = new DeanInstanceBuilder(delegateContainer);
-        this.referenceResolver = new DeanReferenceResolver(delegateContainer);
+        this.instanceBuilder = new ContextDeanInstanceBuilder(delegateContainer);
+        this.referenceResolver = new ContextDeanReferenceResolver(delegateContainer);
     }
 
     public void scanAll() throws IOException {
