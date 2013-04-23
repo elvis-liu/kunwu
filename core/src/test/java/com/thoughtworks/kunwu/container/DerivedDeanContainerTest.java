@@ -9,7 +9,7 @@ import static com.thoughtworks.kunwu.dean.DeanReference.refByValue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class ChildDeanContainerTest {
+public class DerivedDeanContainerTest {
 
     private DeanContainer parentContainer;
     private DeanContainer childContainer;
@@ -17,7 +17,7 @@ public class ChildDeanContainerTest {
     @Before
     public void setUp() throws Exception {
         parentContainer = new CoreDeanContainer();
-        childContainer = new ChildDeanContainer(parentContainer);
+        childContainer = new DerivedDeanContainer(parentContainer);
     }
 
     @Test

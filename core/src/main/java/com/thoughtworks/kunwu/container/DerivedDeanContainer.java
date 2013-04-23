@@ -4,11 +4,11 @@ import com.thoughtworks.kunwu.context.DeanContext;
 import com.thoughtworks.kunwu.dean.DeanDefinition;
 import com.thoughtworks.kunwu.exception.NoSuchDeanException;
 
-public class ChildDeanContainer extends DeanContainer {
+public class DerivedDeanContainer extends DeanContainer {
     private final DeanContext parentContainer;
     private final DeanContainer delegateContainer;
 
-    public ChildDeanContainer(DeanContext parentContainer) {
+    public DerivedDeanContainer(DeanContext parentContainer) {
         this.parentContainer = parentContainer;
         this.delegateContainer = new CoreDeanContainer();
     }
